@@ -11,22 +11,6 @@ use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
-    public function getOfficeLocation()
-    {
-        $office = OfficeLocation::where('is_active', true)->first();
-
-        if (!$office) {
-            return ApiResponse::error('Office location not configured', null, 404);
-        }
-
-        return ApiResponse::success([
-            'latitude' => $office->latitude,
-            'longitude' => $office->longitude,
-            'radius' => $office->radius,
-            'name' => $office->name,
-        ]);
-    }
-
     public function checkIn(Request $request)
     {
         $validated = $request->validate([

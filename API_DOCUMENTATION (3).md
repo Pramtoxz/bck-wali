@@ -1,12 +1,7 @@
-# API Documentation - Wali Nagari Digital Attendance
-
-> Dokumentasi API untuk Tim Backend  
-> Project: SIWALI - Sistem Informasi Wali Nagari  
-> Frontend: React Native CLI 0.85.1  
-> Backend: Laravel 12  
-> Last Updated: 2026-04-18
-
----
+primary = #2e7d32
+secondary = #ffd600
+tertiary = #c62828
+neutral = #454744
 
 ## ATURAN KERJA
 - **PENGGUNAAN CODINGAN** WAJIB TANYA KE CONTEXT7 TANPA ASUSMSI SENDIRI
