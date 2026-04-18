@@ -12,6 +12,7 @@ class OfficeLocation extends Model
         'longitude',
         'radius',
         'is_active',
+        'map_iframe',
     ];
 
     protected $casts = [

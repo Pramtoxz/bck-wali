@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\FieldDuty;
+use App\Models\Leave;
 use App\Models\OfficeLocation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,7 +19,7 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'photo' => 'required|file|mimes:jpg,jpeg|max:5120',
+            'photo' => 'required|file|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         $user = $request->user();
@@ -31,7 +34,7 @@ class AttendanceController extends Controller
         }
 
         $currentTime = Carbon::now('Asia/Jakarta');
-        $checkInStart = Carbon::parse('04:00:00', 'Asia/Jakarta');
+        $checkInStart = Carbon::parse('06:00:00', 'Asia/Jakarta');
         $checkInEnd = Carbon::parse('10:00:00', 'Asia/Jakarta');
 
         if ($currentTime->lt($checkInStart) || $currentTime->gt($checkInEnd)) {
@@ -40,7 +43,7 @@ class AttendanceController extends Controller
 
         $office = OfficeLocation::where('is_active', true)->first();
         if (!$office) {
-            return ApiResponse::error('Office location not configured', null, 404);
+            return ApiResponse::error('Lokasi kantor belum dikonfigurasi', null, 404);
         }
 
         $distance = $this->calculateDistance(
@@ -58,7 +61,9 @@ class AttendanceController extends Controller
             );
         }
 
-        $photoPath = $request->file('photo')->store('attendance/check-in', 'public');
+        $compressor = new ImageCompressor(maxSizeMB: 1.9);
+        $compressedPhoto = $compressor->compress($request->file('photo'));
+        $photoPath = $compressedPhoto->store('attendance/check-in', 'public');
 
         $attendance = Attendance::updateOrCreate(
             [
@@ -90,7 +95,7 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'photo' => 'required|file|mimes:jpg,jpeg|max:5120',
+            'photo' => 'required|file|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         $user = $request->user();
@@ -109,7 +114,7 @@ class AttendanceController extends Controller
         }
 
         $currentTime = Carbon::now('Asia/Jakarta');
-        $checkOutStart = Carbon::parse('04:00:00', 'Asia/Jakarta');
+        $checkOutStart = Carbon::parse('15:00:00', 'Asia/Jakarta');
         $checkOutEnd = Carbon::parse('20:00:00', 'Asia/Jakarta');
 
         if ($currentTime->lt($checkOutStart) || $currentTime->gt($checkOutEnd)) {
@@ -118,7 +123,7 @@ class AttendanceController extends Controller
 
         $office = OfficeLocation::where('is_active', true)->first();
         if (!$office) {
-            return ApiResponse::error('Office location not configured', null, 404);
+            return ApiResponse::error('Lokasi kantor belum dikonfigurasi', null, 404);
         }
 
         $distance = $this->calculateDistance(
@@ -136,7 +141,9 @@ class AttendanceController extends Controller
             );
         }
 
-        $photoPath = $request->file('photo')->store('attendance/check-out', 'public');
+        $compressor = new ImageCompressor(maxSizeMB: 1.9);
+        $compressedPhoto = $compressor->compress($request->file('photo'));
+        $photoPath = $compressedPhoto->store('attendance/check-out', 'public');
 
         $checkInTime = Carbon::parse($attendance->check_in_time, 'Asia/Jakarta');
         $workingSeconds = $checkInTime->diffInSeconds($currentTime);
@@ -167,30 +174,100 @@ class AttendanceController extends Controller
     public function today(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today();
+        $todayString = $today->toDateString();
 
+        // Check if user has approved field duty today
+        $fieldDuty = FieldDuty::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today)
+            ->first();
+
+        if ($fieldDuty) {
+            return ApiResponse::success([
+                'id' => null,
+                'date' => $todayString,
+                'check_in_time' => null,
+                'check_out_time' => null,
+                'check_in_photo' => null,
+                'check_out_photo' => null,
+                'working_hours' => null,
+                'status' => 'field_duty',
+                'status_message' => 'Sedang Dinas Luar',
+                'description' => $fieldDuty->destination,
+                'can_check_in' => false,
+                'can_check_out' => false,
+            ]);
+        }
+
+        // Check if user has approved leave today
+        $leave = Leave::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today)
+            ->first();
+
+        if ($leave) {
+            $statusMessages = [
+                'sakit' => 'Sedang Sakit',
+                'izin' => 'Sedang Izin',
+                'cuti' => 'Sedang Cuti',
+            ];
+
+            return ApiResponse::success([
+                'id' => null,
+                'date' => $todayString,
+                'check_in_time' => null,
+                'check_out_time' => null,
+                'check_in_photo' => null,
+                'check_out_photo' => null,
+                'working_hours' => null,
+                'status' => 'leave',
+                'status_message' => $statusMessages[$leave->type] ?? 'Sedang Izin/Cuti',
+                'description' => $leave->reason,
+                'leave_type' => $leave->type,
+                'can_check_in' => false,
+                'can_check_out' => false,
+            ]);
+        }
+
+        // Check attendance record
         $attendance = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->where('date', $todayString)
             ->first();
 
         if (!$attendance) {
             return ApiResponse::success([
                 'id' => null,
-                'date' => $today,
+                'date' => $todayString,
                 'check_in_time' => null,
                 'check_out_time' => null,
                 'check_in_photo' => null,
                 'check_out_photo' => null,
                 'working_hours' => null,
                 'status' => 'not_checked_in',
+                'status_message' => 'Belum Absen',
+                'can_check_in' => true,
+                'can_check_out' => false,
             ]);
         }
 
         $status = 'not_checked_in';
+        $statusMessage = 'Belum Absen';
+        $canCheckIn = true;
+        $canCheckOut = false;
+
         if ($attendance->check_in_time && $attendance->check_out_time) {
             $status = 'checked_out';
+            $statusMessage = 'Sudah Absen Keluar';
+            $canCheckIn = false;
+            $canCheckOut = false;
         } elseif ($attendance->check_in_time) {
             $status = 'checked_in';
+            $statusMessage = 'Sudah Absen Masuk';
+            $canCheckIn = false;
+            $canCheckOut = true;
         }
 
         return ApiResponse::success([
@@ -202,6 +279,9 @@ class AttendanceController extends Controller
             'check_out_photo' => $attendance->check_out_photo ? asset('storage/' . $attendance->check_out_photo) : null,
             'working_hours' => $attendance->working_hours,
             'status' => $status,
+            'status_message' => $statusMessage,
+            'can_check_in' => $canCheckIn,
+            'can_check_out' => $canCheckOut,
         ]);
     }
 

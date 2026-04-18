@@ -47,4 +47,38 @@ class AttendanceController extends Controller
             ],
         ]);
     }
+
+    public function show($id)
+    {
+        $attendance = Attendance::with('user')->findOrFail($id);
+
+        return Inertia::render('attendances/show', [
+            'attendance' => [
+                'id' => $attendance->id,
+                'date' => $attendance->date->format('Y-m-d'),
+                'day_name' => $attendance->date->locale('id')->dayName,
+                'user' => [
+                    'id' => $attendance->user->id,
+                    'name' => $attendance->user->name,
+                    'nip' => $attendance->user->nip,
+                    'position' => $attendance->user->position,
+                    'department' => $attendance->user->department,
+                ],
+                'check_in_time' => $attendance->check_in_time,
+                'check_out_time' => $attendance->check_out_time,
+                'check_in_photo' => $attendance->check_in_photo ? asset('storage/' . $attendance->check_in_photo) : null,
+                'check_out_photo' => $attendance->check_out_photo ? asset('storage/' . $attendance->check_out_photo) : null,
+                'check_in_location' => [
+                    'latitude' => $attendance->check_in_latitude,
+                    'longitude' => $attendance->check_in_longitude,
+                ],
+                'check_out_location' => $attendance->check_out_latitude ? [
+                    'latitude' => $attendance->check_out_latitude,
+                    'longitude' => $attendance->check_out_longitude,
+                ] : null,
+                'working_hours' => $attendance->working_hours,
+                'is_late' => $attendance->check_in_time && \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s') > '08:00:00',
+            ],
+        ]);
+    }
 }

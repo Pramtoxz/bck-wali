@@ -8,7 +8,22 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import InputError from '@/components/input-error';
 
-export default function UsersCreate() {
+interface Position {
+    id: number;
+    name: string;
+}
+
+interface Department {
+    id: number;
+    name: string;
+}
+
+interface Props {
+    positions: Position[];
+    departments: Department[];
+}
+
+export default function UsersCreate({ positions, departments }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         username: '',
         name: '',
@@ -97,23 +112,35 @@ export default function UsersCreate() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="position">Jabatan</Label>
-                                    <Input
-                                        id="position"
-                                        value={data.position}
-                                        onChange={(e) => setData('position', e.target.value)}
-                                        placeholder="Staff Administrasi"
-                                    />
+                                    <Select value={data.position} onValueChange={(value) => setData('position', value)}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih jabatan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {positions.map((position) => (
+                                                <SelectItem key={position.id} value={position.name}>
+                                                    {position.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError message={errors.position} />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="department">Departemen</Label>
-                                    <Input
-                                        id="department"
-                                        value={data.department}
-                                        onChange={(e) => setData('department', e.target.value)}
-                                        placeholder="Pemerintahan"
-                                    />
+                                    <Select value={data.department} onValueChange={(value) => setData('department', value)}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih departemen" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.map((department) => (
+                                                <SelectItem key={department.id} value={department.name}>
+                                                    {department.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError message={errors.department} />
                                 </div>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
 use App\Models\FieldDuty;
 use Carbon\Carbon;
@@ -39,14 +40,21 @@ class FieldDutyController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'destination' => 'required|string|max:255',
             'purpose' => 'required|string',
-            'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        $documentPath = $request->file('document')->store('documents/field-duty', 'public');
+        $document = $request->file('document');
+        
+        if (str_starts_with($document->getMimeType(), 'image/')) {
+            $compressor = new ImageCompressor(maxSizeMB: 1.9);
+            $document = $compressor->compress($document);
+        }
+        
+        $documentPath = $document->store('documents/field-duty', 'public');
 
         $startDate = Carbon::parse($validated['start_date']);
         $endDate = Carbon::parse($validated['end_date']);

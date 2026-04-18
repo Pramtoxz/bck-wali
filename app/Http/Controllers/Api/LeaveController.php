@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
 use App\Models\Leave;
 use Carbon\Carbon;
@@ -43,12 +44,19 @@ class LeaveController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'type' => 'required|in:sakit,izin,cuti',
             'reason' => 'required|string',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         $documentPath = null;
         if ($request->hasFile('document')) {
-            $documentPath = $request->file('document')->store('documents/leave', 'public');
+            $document = $request->file('document');
+            
+            if (str_starts_with($document->getMimeType(), 'image/')) {
+                $compressor = new ImageCompressor(maxSizeMB: 1.9);
+                $document = $compressor->compress($document);
+            }
+            
+            $documentPath = $document->store('documents/leave', 'public');
         }
 
         $startDate = Carbon::parse($validated['start_date']);

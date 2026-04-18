@@ -21,31 +21,6 @@ class OfficeLocationController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return Inertia::render('office-locations/create');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'radius' => 'required|integer|min:1|max:1000',
-            'is_active' => 'boolean',
-        ]);
-
-        if ($validated['is_active'] ?? false) {
-            OfficeLocation::where('is_active', true)->update(['is_active' => false]);
-        }
-
-        OfficeLocation::create($validated);
-
-        return redirect()->route('office-locations.index')
-            ->with('success', 'Lokasi kantor berhasil ditambahkan');
-    }
-
     public function edit(OfficeLocation $officeLocation)
     {
         return Inertia::render('office-locations/edit', [
@@ -61,6 +36,7 @@ class OfficeLocationController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'radius' => 'required|integer|min:1|max:1000',
             'is_active' => 'boolean',
+            'map_iframe' => 'nullable|string',
         ]);
 
         if ($validated['is_active'] ?? false) {
@@ -73,13 +49,5 @@ class OfficeLocationController extends Controller
 
         return redirect()->route('office-locations.index')
             ->with('success', 'Lokasi kantor berhasil diperbarui');
-    }
-
-    public function destroy(OfficeLocation $officeLocation)
-    {
-        $officeLocation->delete();
-
-        return redirect()->route('office-locations.index')
-            ->with('success', 'Lokasi kantor berhasil dihapus');
     }
 }

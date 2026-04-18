@@ -5,37 +5,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import InputError from '@/components/input-error';
-import { useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { MapPin, ArrowLeft } from 'lucide-react';
-import { FormEventHandler } from 'react';
 
 export default function OfficeLocationsCreate() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
-        latitude: '',
-        longitude: '',
-        radius: '20',
-        is_active: true,
+        latitude: 0,
+        longitude: 0,
+        radius: 20,
+        is_active: true as boolean,
     });
 
-    const submit: FormEventHandler = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/office-locations');
     };
 
-    const handleActiveChange = (checked: boolean | 'indeterminate') => {
-        setData('is_active', checked as true);
-    };
-
     return (
         <AppLayout>
+            <Head title="Tambah Lokasi Kantor" />
+
             <div className="p-6">
                 <Card className="max-w-2xl">
                     <CardHeader>
                         <div className="flex items-center gap-4">
-                            <Button variant="outline" size="icon" onClick={() => window.history.back()}>
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
+                            <Link href="/office-locations">
+                                <Button variant="outline" size="icon">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </Link>
                             <div>
                                 <CardTitle className="flex items-center gap-2">
                                     <MapPin className="h-5 w-5" />
@@ -46,7 +45,7 @@ export default function OfficeLocationsCreate() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={submit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nama Kantor</Label>
                                 <Input
@@ -93,7 +92,7 @@ export default function OfficeLocationsCreate() {
                                             type="number"
                                             step="any"
                                             value={data.latitude}
-                                            onChange={(e) => setData('latitude', e.target.value)}
+                                            onChange={(e) => setData('latitude', parseFloat(e.target.value) || 0)}
                                             placeholder="-0.9492"
                                             required
                                         />
@@ -107,7 +106,7 @@ export default function OfficeLocationsCreate() {
                                             type="number"
                                             step="any"
                                             value={data.longitude}
-                                            onChange={(e) => setData('longitude', e.target.value)}
+                                            onChange={(e) => setData('longitude', parseFloat(e.target.value) || 0)}
                                             placeholder="100.3543"
                                             required
                                         />
@@ -122,7 +121,7 @@ export default function OfficeLocationsCreate() {
                                     id="radius"
                                     type="number"
                                     value={data.radius}
-                                    onChange={(e) => setData('radius', e.target.value)}
+                                    onChange={(e) => setData('radius', parseInt(e.target.value) || 0)}
                                     placeholder="20"
                                     min="1"
                                     max="1000"
@@ -138,7 +137,7 @@ export default function OfficeLocationsCreate() {
                                 <Checkbox
                                     id="is_active"
                                     checked={data.is_active}
-                                    onCheckedChange={handleActiveChange}
+                                    onCheckedChange={(checked) => setData('is_active', !!checked)}
                                 />
                                 <Label htmlFor="is_active" className="cursor-pointer">
                                     Aktifkan lokasi ini
@@ -153,9 +152,11 @@ export default function OfficeLocationsCreate() {
                                 <Button type="submit" disabled={processing}>
                                     {processing ? 'Menyimpan...' : 'Simpan'}
                                 </Button>
-                                <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                    Batal
-                                </Button>
+                                <Link href="/office-locations">
+                                    <Button type="button" variant="outline">
+                                        Batal
+                                    </Button>
+                                </Link>
                             </div>
                         </form>
                     </CardContent>

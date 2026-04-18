@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Head, router } from '@inertiajs/react';
-import { Search, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Head, router, Link } from '@inertiajs/react';
+import { Search, Calendar, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface User {
@@ -147,12 +147,13 @@ export default function AttendancesIndex({ attendances, filters }: Props) {
                                 <TableHead>Check Out</TableHead>
                                 <TableHead>Jam Kerja</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {attendances.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                                         Tidak ada data absensi
                                     </TableCell>
                                 </TableRow>
@@ -191,6 +192,13 @@ export default function AttendancesIndex({ attendances, filters }: Props) {
                                             )}
                                         </TableCell>
                                         <TableCell>{getStatusBadge(attendance)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Link href={`/attendances/${attendance.id}`}>
+                                                <Button variant="ghost" size="sm">
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             )}

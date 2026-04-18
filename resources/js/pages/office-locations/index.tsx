@@ -13,6 +13,7 @@ interface OfficeLocation {
     radius: number;
     is_active: boolean;
     created_at: string;
+    map_iframe: string | null;
 }
 
 interface Props {
@@ -101,30 +102,46 @@ export default function OfficeLocationsIndex({ location }: Props) {
                             <div className="space-y-4">
                                 <div className="rounded-lg border">
                                     <div className="flex items-center justify-between border-b p-4">
-                                        <p className="text-sm font-medium">Peta Lokasi</p>
+                                        <p className="text-sm font-medium">Lokasi di Peta</p>
                                         <a
                                             href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-sm text-primary hover:underline"
                                         >
-                                            Buka di Google Maps
+                                            <Button variant="outline" size="sm">
+                                                <MapPin className="mr-2 h-4 w-4" />
+                                                Buka di Google Maps
+                                            </Button>
                                         </a>
                                     </div>
-                                    <div className="relative h-[400px] w-full overflow-hidden">
-                                        <iframe
-                                            width="100%"
-                                            height="100%"
-                                            frameBorder="0"
-                                            style={{ border: 0 }}
-                                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude - 0.01},${location.latitude - 0.01},${location.longitude + 0.01},${location.latitude + 0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
-                                            allowFullScreen
-                                            title="Office Location Map"
+                                    {location.map_iframe ? (
+                                        <div 
+                                            className="aspect-video w-full [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0"
+                                            dangerouslySetInnerHTML={{ 
+                                                __html: location.map_iframe
+                                                    .replace(/width="[^"]*"/g, '')
+                                                    .replace(/height="[^"]*"/g, '')
+                                            }}
                                         />
-                                    </div>
-                                    <div className="border-t p-3 text-center">
+                                    ) : (
+                                        <div className="flex h-[300px] w-full flex-col items-center justify-center gap-4 bg-muted/30 p-8">
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                                                <MapPinned className="h-10 w-10 text-primary" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-medium">{location.name}</p>
+                                                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                                                    {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                                                </p>
+                                                <p className="mt-2 text-xs text-muted-foreground">
+                                                    Klik tombol di atas untuk melihat lokasi di Google Maps
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="border-t bg-muted/50 p-3 text-center">
                                         <p className="text-xs text-muted-foreground">
-                                            Peta dari OpenStreetMap | 📍 Kontribusi OpenStreetMap ❤️ Data Dinas Keletakan Sipil, Web dan API
+                                            Radius validasi: {location.radius} meter dari titik koordinat
                                         </p>
                                     </div>
                                 </div>

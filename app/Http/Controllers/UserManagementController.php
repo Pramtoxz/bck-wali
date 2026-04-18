@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Auth;
 
 class UserManagementController extends Controller
 {
@@ -54,7 +55,13 @@ class UserManagementController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('users/create');
+        $positions = \App\Models\Position::orderBy('name')->get();
+        $departments = \App\Models\Department::orderBy('name')->get();
+
+        return Inertia::render('users/create', [
+            'positions' => $positions,
+            'departments' => $departments,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -88,6 +95,8 @@ class UserManagementController extends Controller
     public function edit(string $id): Response
     {
         $user = User::with('roles')->findOrFail($id);
+        $positions = \App\Models\Position::orderBy('name')->get();
+        $departments = \App\Models\Department::orderBy('name')->get();
 
         return Inertia::render('users/edit', [
             'user' => [
@@ -100,6 +109,8 @@ class UserManagementController extends Controller
                 'department' => $user->department,
                 'role' => $user->getRoleNames()->first(),
             ],
+            'positions' => $positions,
+            'departments' => $departments,
         ]);
     }
 
@@ -140,7 +151,7 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($id);
         
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus user yang sedang login');
         }
 

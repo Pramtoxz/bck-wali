@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
-import { useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { MapPin, ArrowLeft } from 'lucide-react';
-import { FormEventHandler } from 'react';
 
 interface OfficeLocation {
     id: number;
@@ -16,6 +16,7 @@ interface OfficeLocation {
     longitude: number;
     radius: number;
     is_active: boolean;
+    map_iframe: string | null;
 }
 
 interface Props {
@@ -25,26 +26,31 @@ interface Props {
 export default function OfficeLocationsEdit({ location }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         name: location.name,
-        latitude: location.latitude.toString(),
-        longitude: location.longitude.toString(),
-        radius: location.radius.toString(),
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius: location.radius,
         is_active: location.is_active,
+        map_iframe: location.map_iframe || '',
     });
 
-    const submit: FormEventHandler = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(`/office-locations/${location.id}`);
     };
 
     return (
         <AppLayout>
+            <Head title="Edit Lokasi Kantor" />
+
             <div className="p-6">
                 <Card className="max-w-2xl">
                     <CardHeader>
                         <div className="flex items-center gap-4">
-                            <Button variant="outline" size="icon" onClick={() => window.history.back()}>
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
+                            <Link href="/office-locations">
+                                <Button variant="outline" size="icon">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </Link>
                             <div>
                                 <CardTitle className="flex items-center gap-2">
                                     <MapPin className="h-5 w-5" />
@@ -55,7 +61,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={submit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nama Kantor</Label>
                                 <Input
@@ -106,7 +112,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                             type="number"
                                             step="any"
                                             value={data.latitude}
-                                            onChange={(e) => setData('latitude', e.target.value)}
+                                            onChange={(e) => setData('latitude', parseFloat(e.target.value) || 0)}
                                             placeholder="-0.9492"
                                             required
                                         />
@@ -120,7 +126,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                             type="number"
                                             step="any"
                                             value={data.longitude}
-                                            onChange={(e) => setData('longitude', e.target.value)}
+                                            onChange={(e) => setData('longitude', parseFloat(e.target.value) || 0)}
                                             placeholder="100.3543"
                                             required
                                         />
@@ -135,7 +141,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                     id="radius"
                                     type="number"
                                     value={data.radius}
-                                    onChange={(e) => setData('radius', e.target.value)}
+                                    onChange={(e) => setData('radius', parseInt(e.target.value) || 0)}
                                     placeholder="20"
                                     min="1"
                                     max="1000"
@@ -147,11 +153,26 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                 </p>
                             </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="map_iframe">Google Maps Embed (Opsional)</Label>
+                                <Textarea
+                                    id="map_iframe"
+                                    value={data.map_iframe}
+                                    onChange={(e) => setData('map_iframe', e.target.value)}
+                                    placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'
+                                    rows={4}
+                                />
+                                <InputError message={errors.map_iframe} />
+                                <p className="text-sm text-muted-foreground">
+                                    Paste iframe embed dari Google Maps. Buka Google Maps → Bagikan → Sematkan peta → Salin HTML
+                                </p>
+                            </div>
+
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="is_active"
                                     checked={data.is_active}
-                                    onCheckedChange={(checked) => setData('is_active', checked === true)}
+                                    onCheckedChange={(checked) => setData('is_active', !!checked)}
                                 />
                                 <Label htmlFor="is_active" className="cursor-pointer">
                                     Aktifkan lokasi ini
@@ -166,9 +187,11 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                 <Button type="submit" disabled={processing}>
                                     {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                                 </Button>
-                                <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                                    Batal
-                                </Button>
+                                <Link href="/office-locations">
+                                    <Button type="button" variant="outline">
+                                        Batal
+                                    </Button>
+                                </Link>
                             </div>
                         </form>
                     </CardContent>

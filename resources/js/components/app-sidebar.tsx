@@ -3,11 +3,11 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users, MapPin, Clock } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const navItems: NavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
@@ -18,13 +18,30 @@ const mainNavItems: NavItem[] = [
         url: '/attendances',
         icon: Clock,
     },
-];
-
-const adminNavItems: NavItem[] = [
+    {
+        title: 'Dinas Luar',
+        url: '/field-duties',
+        icon: Plane,
+    },
+    {
+        title: 'Izin & Cuti',
+        url: '/leaves',
+        icon: FileText,
+    },
     {
         title: 'Manajemen User',
         url: '/users',
         icon: Users,
+    },
+    {
+        title: 'Jabatan',
+        url: '/positions',
+        icon: Briefcase,
+    },
+    {
+        title: 'Departemen',
+        url: '/departments',
+        icon: Building2,
     },
     {
         title: 'Lokasi Kantor',
@@ -34,22 +51,19 @@ const adminNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Repository',
+    //     url: 'https://github.com/laravel/react-starter-kit',
+    //     icon: Folder,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     url: 'https://laravel.com/docs/starter-kits',
+    //     icon: BookOpen,
+    // },
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props as { auth: { user: { role: string } | null } };
-    const isAdmin = auth?.user?.role === 'admin';
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -65,8 +79,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
-                {isAdmin && <NavMain items={adminNavItems} />}
+                <NavMain items={navItems} />
             </SidebarContent>
 
             <SidebarFooter>
