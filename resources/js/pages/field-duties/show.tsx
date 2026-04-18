@@ -48,8 +48,8 @@ interface Props {
 
 export default function FieldDutiesShow({ fieldDuty }: Props) {
     const [processing, setProcessing] = useState(false);
-    const page = usePage();
-    const flash = (page.props as any).flash;
+    const page = usePage<{ flash?: { success?: string; error?: string } }>();
+    const flash = page.props.flash;
 
     useEffect(() => {
         if (flash?.success) {
