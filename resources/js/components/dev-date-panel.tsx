@@ -48,8 +48,7 @@ export function DevDatePanel({ testMode = false, testDate }: DevDatePanelProps) 
                     className="shadow-lg bg-yellow-50 border-yellow-300 hover:bg-yellow-100"
                 >
                     <Calendar className="h-4 w-4 mr-2" />
-                    Dev: Date Testing
-                    {testMode && <Badge className="ml-2 bg-yellow-500">Active</Badge>}
+                    {testMode ? 'Test Mode Active' : 'Date Testing'}
                 </Button>
             </div>
         );

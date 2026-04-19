@@ -3,9 +3,11 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle } from 'lucide-react';
 import AppLogo from './app-logo';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription } from './ui/alert';
 
 const navItems: NavItem[] = [
     {
@@ -74,6 +76,11 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { props } = usePage();
+    const testDateInfo = (props as any).test_date_info;
+    const isTestMode = testDateInfo?.test_mode;
+    const testDate = testDateInfo?.date;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -86,6 +93,31 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+                
+                {isTestMode && (
+                    <div className="px-2 py-2">
+                        <Alert className="bg-yellow-50 border-yellow-300">
+                            <AlertCircle className="h-4 w-4 text-yellow-600" />
+                            <AlertDescription className="text-xs">
+                                <div className="font-semibold text-yellow-800">Test Mode</div>
+                                <div className="text-yellow-700 mt-1">
+                                    {new Date(testDate).toLocaleDateString('id-ID', { 
+                                        weekday: 'short',
+                                        day: '2-digit', 
+                                        month: 'short',
+                                        year: 'numeric' 
+                                    })}
+                                </div>
+                                <a 
+                                    href="/dev/clear-date" 
+                                    className="text-yellow-800 underline hover:text-yellow-900 text-xs mt-1 inline-block"
+                                >
+                                    Clear
+                                </a>
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
             </SidebarHeader>
 
             <SidebarContent>
