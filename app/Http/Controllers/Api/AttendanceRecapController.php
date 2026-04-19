@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\DateHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\FieldDuty;
@@ -234,7 +235,7 @@ class AttendanceRecapController extends Controller
 
     public function getStatistics(Request $request)
     {
-        $month = $request->query('month', Carbon::now()->format('Y-m'));
+        $month = $request->query('month', DateHelper::now()->format('Y-m'));
         $userId = $request->user()->id;
         
         $startDate = Carbon::parse($month . '-01')->startOfMonth();

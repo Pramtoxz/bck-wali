@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\DateHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ class HolidayController extends Controller
 {
     public function checkToday(Request $request): JsonResponse
     {
-        $date = $request->query('date', Carbon::today()->format('Y-m-d'));
+        $date = $request->query('date', DateHelper::today());
         $holidayCheck = Holiday::isHoliday($date);
 
         return ApiResponse::success([
@@ -27,7 +28,7 @@ class HolidayController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $year = $request->query('year', Carbon::now()->year);
+        $year = $request->query('year', DateHelper::now()->year);
         
         $holidays = Holiday::whereYear('date', $year)
             ->where('is_active', true)

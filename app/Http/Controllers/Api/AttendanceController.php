@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\DateHelper;
 use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
@@ -24,7 +25,7 @@ class AttendanceController extends Controller
         ]);
 
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = DateHelper::today();
 
         // Validasi holiday/weekend
         $holidayCheck = Holiday::isHoliday($today);
@@ -114,7 +115,7 @@ class AttendanceController extends Controller
         ]);
 
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = DateHelper::today();
 
         // Validasi holiday/weekend
         $holidayCheck = Holiday::isHoliday($today);
@@ -203,8 +204,8 @@ class AttendanceController extends Controller
     public function today(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today();
-        $todayString = $today->toDateString();
+        $today = DateHelper::now()->startOfDay();
+        $todayString = DateHelper::today();
 
         // Check holiday/weekend
         $holidayCheck = Holiday::isHoliday($today);
