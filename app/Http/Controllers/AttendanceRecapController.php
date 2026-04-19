@@ -1,26 +1,47 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Helpers\ApiResponse;
-use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\FieldDuty;
 use App\Models\Leave;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class AttendanceRecapController extends Controller
 {
-    public function getMonthlyRecap(Request $request)
+    public function index(Request $request)
     {
-        $validated = $request->validate([
-            'month' => 'required|date_format:Y-m',
-        ]);
-
-        $userId = $request->user()->id;
-        $month = $validated['month'];
+        $month = $request->input('month', Carbon::now()->format('Y-m'));
+        $userId = $request->input('user_id');
         
+        $users = User::select('id', 'name', 'nip', 'position', 'department')
+            ->orderBy('name')
+            ->get();
+
+        $recapData = null;
+        $selectedUser = null;
+
+        if ($userId) {
+            $selectedUser = User::find($userId);
+            $recapData = $this->getRecapData($userId, $month);
+        }
+
+        return Inertia::render('attendance-recap/index', [
+            'users' => $users,
+            'selectedUser' => $selectedUser,
+            'recapData' => $recapData,
+            'filters' => [
+                'month' => $month,
+                'user_id' => $userId,
+            ],
+        ]);
+    }
+
+    private function getRecapData($userId, $month)
+    {
         $startDate = Carbon::parse($month . '-01')->startOfMonth();
         $endDate = Carbon::parse($month . '-01')->endOfMonth();
 
@@ -128,8 +149,10 @@ class AttendanceRecapController extends Controller
                 $summary['leave']++;
             } elseif (isset($attendances[$dateString])) {
                 $attendance = $attendances[$dateString];
+                
                 $checkInTime = Carbon::parse($attendance->check_in_time);
                 $isLate = $checkInTime->format('H:i:s') > '08:00:00';
+                
                 $status = $isLate ? 'late' : 'present';
                 
                 $calendar[$dateString] = [
@@ -177,153 +200,13 @@ class AttendanceRecapController extends Controller
             return strcmp($b['date'], $a['date']);
         });
 
-        return ApiResponse::success([
+        return [
             'month' => $month,
             'month_name' => $startDate->locale('id')->monthName,
             'year' => $startDate->year,
             'summary' => $summary,
             'calendar' => $calendar,
             'details' => $details,
-        ], 'Rekapitulasi absensi berhasil dimuat');
-    }
-
-    public function getAttendanceDetail(Request $request, $date)
-    {
-        $userId = $request->user()->id;
-        
-        $attendance = Attendance::where('user_id', $userId)
-            ->where('date', $date)
-            ->first();
-
-        if (!$attendance) {
-            return ApiResponse::error('Data absensi tidak ditemukan', null, 404);
-        }
-
-        $carbonDate = Carbon::parse($date);
-        $isLate = $attendance->check_in_time && Carbon::parse($attendance->check_in_time)->format('H:i:s') > '08:00:00';
-
-        return ApiResponse::success([
-            'date' => $date,
-            'day_name' => $carbonDate->locale('id')->dayName,
-            'status' => $isLate ? 'late' : 'present',
-            'check_in_time' => $attendance->check_in_time,
-            'check_out_time' => $attendance->check_out_time,
-            'check_in_photo' => $attendance->check_in_photo ? asset('storage/' . $attendance->check_in_photo) : null,
-            'check_out_photo' => $attendance->check_out_photo ? asset('storage/' . $attendance->check_out_photo) : null,
-            'check_in_location' => [
-                'latitude' => $attendance->check_in_latitude,
-                'longitude' => $attendance->check_in_longitude,
-                'address' => 'Kantor Wali Nagari',
-            ],
-            'check_out_location' => $attendance->check_out_latitude ? [
-                'latitude' => $attendance->check_out_latitude,
-                'longitude' => $attendance->check_out_longitude,
-                'address' => 'Kantor Wali Nagari',
-            ] : null,
-            'working_hours' => $attendance->working_hours,
-            'is_late' => $isLate,
-            'notes' => null,
-        ], 'Detail absensi berhasil dimuat');
-    }
-
-    public function getStatistics(Request $request)
-    {
-        $month = $request->query('month', Carbon::now()->format('Y-m'));
-        $userId = $request->user()->id;
-        
-        $startDate = Carbon::parse($month . '-01')->startOfMonth();
-        $endDate = Carbon::parse($month . '-01')->endOfMonth();
-
-        $workingDays = 0;
-        $current = $startDate->copy();
-        while ($current <= $endDate) {
-            if (!$current->isWeekend()) {
-                $workingDays++;
-            }
-            $current->addDay();
-        }
-
-        $attendances = Attendance::where('user_id', $userId)
-            ->whereYear('date', $startDate->year)
-            ->whereMonth('date', $startDate->month)
-            ->get();
-
-        $presentDays = 0;
-        $lateDays = 0;
-        
-        foreach ($attendances as $attendance) {
-            $checkInTime = Carbon::parse($attendance->check_in_time);
-            if ($checkInTime->format('H:i:s') > '08:00:00') {
-                $lateDays++;
-            } else {
-                $presentDays++;
-            }
-        }
-
-        $fieldDutyDays = FieldDuty::where('user_id', $userId)
-            ->where('status', 'approved')
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate]);
-            })
-            ->sum('total_days');
-
-        $leaveDays = Leave::where('user_id', $userId)
-            ->where('status', 'approved')
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate]);
-            })
-            ->sum('total_days');
-
-        $absentDays = $workingDays - $presentDays - $lateDays - $fieldDutyDays - $leaveDays;
-        $totalPresent = $presentDays + $lateDays;
-        $attendanceRate = $workingDays > 0 ? round(($totalPresent / $workingDays) * 100, 2) : 0;
-        $punctualityRate = $totalPresent > 0 ? round(($presentDays / $totalPresent) * 100, 2) : 0;
-
-        $previousMonth = $startDate->copy()->subMonth();
-        $previousMonthStart = $previousMonth->copy()->startOfMonth();
-        $previousMonthEnd = $previousMonth->copy()->endOfMonth();
-        
-        $previousWorkingDays = 0;
-        $current = $previousMonthStart->copy();
-        while ($current <= $previousMonthEnd) {
-            if (!$current->isWeekend()) {
-                $previousWorkingDays++;
-            }
-            $current->addDay();
-        }
-        
-        $previousAttendances = Attendance::where('user_id', $userId)
-            ->whereYear('date', $previousMonth->year)
-            ->whereMonth('date', $previousMonth->month)
-            ->count();
-        
-        $previousAttendanceRate = $previousWorkingDays > 0 ? round(($previousAttendances / $previousWorkingDays) * 100, 2) : 0;
-        $rateChange = $attendanceRate - $previousAttendanceRate;
-
-        return ApiResponse::success([
-            'period' => [
-                'month' => $startDate->locale('id')->monthName,
-                'year' => $startDate->year,
-                'month_number' => $startDate->month,
-            ],
-            'statistics' => [
-                'total_working_days' => $workingDays,
-                'present_days' => $presentDays,
-                'late_days' => $lateDays,
-                'absent_days' => max(0, $absentDays),
-                'field_duty_days' => $fieldDutyDays,
-                'leave_days' => $leaveDays,
-                'attendance_rate' => $attendanceRate,
-                'punctuality_rate' => $punctualityRate,
-            ],
-            'comparison' => [
-                'previous_month' => [
-                    'attendance_rate' => $previousAttendanceRate,
-                    'change' => round($rateChange, 2),
-                ],
-            ],
-        ], 'Statistik absensi berhasil dimuat');
+        ];
     }
 }

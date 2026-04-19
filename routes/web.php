@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('leaves', [\App\Http\Controllers\LeaveController::class, 'index'])->name('leaves.index');
         Route::get('leaves/{leave}', [\App\Http\Controllers\LeaveController::class, 'show'])->name('leaves.show');
         Route::patch('leaves/{leave}/status', [\App\Http\Controllers\LeaveController::class, 'updateStatus'])->name('leaves.update-status');
+        
+        Route::get('attendance-recap', [\App\Http\Controllers\AttendanceRecapController::class, 'index'])->name('attendance-recap.index');
     });
 });
 
