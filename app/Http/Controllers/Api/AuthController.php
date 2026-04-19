@@ -26,7 +26,7 @@ class AuthController extends Controller
 
         // Blokir admin dari login ke API
         if ($user->hasRole('admin')) {
-            return ApiResponse::error('Admin tidak memiliki akses ke API mobile', null, 403);
+            return ApiResponse::error('Admin tidak memiliki akses ke Aplikasi , Silahkan Login Menggunakan Akun Pegawai', null, 403);
         }
 
         $token = $user->createToken('mobile-app')->plainTextToken;
