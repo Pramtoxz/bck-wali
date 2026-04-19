@@ -12,7 +12,7 @@ class FirebaseServiceProvider extends ServiceProvider
     {
         $this->app->singleton('firebase.messaging', function ($app) {
             $factory = (new Factory)
-                ->withServiceAccount(storage_path('app/private/absen-wali-firebase.json'));
+                    ->withServiceAccount(storage_path('app/private/firebase/absen-wali-firebase.json'));
 
             return $factory->createMessaging();
         });

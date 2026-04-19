@@ -129,6 +129,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $attendance->id,
                     'user_name' => $attendance->user->name,
+                    'user_avatar' => $attendance->user->avatar ?? asset('images/logo-transparan.png'),
                     'date' => $attendance->date->format('d M Y'),
                     'check_in_time' => $attendance->check_in_time,
                     'check_out_time' => $attendance->check_out_time,
@@ -148,6 +149,7 @@ class DashboardController extends Controller
                     'id' => $duty->id,
                     'type' => 'field_duty',
                     'user_name' => $duty->user->name,
+                    'user_avatar' => $duty->user->avatar ?? asset('images/logo-transparan.png'),
                     'description' => $duty->destination,
                     'date' => $duty->created_at->format('d M Y'),
                     'status' => $duty->status,
@@ -164,6 +166,7 @@ class DashboardController extends Controller
                     'id' => $leave->id,
                     'type' => 'leave',
                     'user_name' => $leave->user->name,
+                    'user_avatar' => $leave->user->avatar ?? asset('images/logo-transparan.png'),
                     'description' => ucfirst($leave->type),
                     'date' => $leave->created_at->format('d M Y'),
                     'status' => $leave->status,

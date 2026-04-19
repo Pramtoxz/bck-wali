@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UserManagementController extends Controller
 {
@@ -40,6 +41,7 @@ class UserManagementController extends Controller
                            'nip' => $user->nip,
                            'position' => $user->position,
                            'department' => $user->department,
+                           'avatar' => $user->avatar ?? asset('images/logo-transparan.png'),
                            'role' => $user->getRoleNames()->first(),
                            'created_at' => $user->created_at->format('d M Y'),
                        ]);
@@ -75,7 +77,13 @@ class UserManagementController extends Controller
             'department' => 'required|string|max:255',
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,user',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
         ]);
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
 
         $user = User::create([
             'username' => $validated['username'],
@@ -85,6 +93,7 @@ class UserManagementController extends Controller
             'position' => $validated['position'],
             'department' => $validated['department'],
             'password' => Hash::make($validated['password']),
+            'avatar' => $avatarPath ? asset('storage/' . $avatarPath) : null,
         ]);
 
         $user->assignRole($validated['role']);
@@ -108,6 +117,7 @@ class UserManagementController extends Controller
                 'position' => $user->position,
                 'department' => $user->department,
                 'role' => $user->getRoleNames()->first(),
+                'avatar' => $user->avatar,
             ],
             'positions' => $positions,
             'departments' => $departments,
@@ -127,16 +137,28 @@ class UserManagementController extends Controller
             'department' => 'required|string|max:255',
             'password' => 'nullable|string|min:8',
             'role' => 'required|in:admin,user',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
         ]);
 
-        $user->update([
+        $updateData = [
             'username' => $validated['username'],
             'name' => $validated['name'],
             'email' => $validated['email'],
             'nip' => $validated['nip'],
             'position' => $validated['position'],
             'department' => $validated['department'],
-        ]);
+        ];
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                $oldPath = str_replace(asset('storage/'), '', $user->avatar);
+                \Storage::disk('public')->delete($oldPath);
+            }
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $updateData['avatar'] = asset('storage/' . $avatarPath);
+        }
+
+        $user->update($updateData);
 
         if (!empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);

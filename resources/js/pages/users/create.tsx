@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload, X } from 'lucide-react';
 import InputError from '@/components/input-error';
+import { useState } from 'react';
 
 interface Position {
     id: number;
@@ -33,7 +34,27 @@ export default function UsersCreate({ positions, departments }: Props) {
         department: '',
         password: '',
         role: 'user',
+        avatar: null as File | null,
     });
+
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setData('avatar', file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeAvatar = () => {
+        setData('avatar', null);
+        setPreviewUrl(null);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,7 +84,49 @@ export default function UsersCreate({ positions, departments }: Props) {
                         <CardDescription>Lengkapi form di bawah untuk menambah user baru</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Avatar Upload */}
+                            <div className="space-y-2">
+                                <Label>Foto Profil</Label>
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        {previewUrl ? (
+                                            <div className="relative">
+                                                <img
+                                                    src={previewUrl}
+                                                    alt="Preview"
+                                                    className="h-24 w-24 rounded-full object-cover border-2 border-[#2e7d32]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={removeAvatar}
+                                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-[#c62828] text-white flex items-center justify-center hover:bg-[#a52020] transition-colors"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center border-2 border-dashed">
+                                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <Input
+                                            id="avatar"
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png"
+                                            onChange={handleAvatarChange}
+                                            className="cursor-pointer"
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            JPG, JPEG, atau PNG. Maksimal 2MB.
+                                        </p>
+                                        <InputError message={errors.avatar} />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="username">Username</Label>

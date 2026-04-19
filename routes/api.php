@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FieldDutyController;
 use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\OfficeLocationController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -15,6 +16,12 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('auth/user', [AuthController::class, 'user']);
+    
+    Route::prefix('profile')->group(function () {
+        Route::put('/', [ProfileController::class, 'update']);
+        Route::post('/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::put('/password', [ProfileController::class, 'updatePassword']);
+    });
     
     Route::post('field-duty', [FieldDutyController::class, 'store']);
     Route::get('field-duty', [FieldDutyController::class, 'index']);

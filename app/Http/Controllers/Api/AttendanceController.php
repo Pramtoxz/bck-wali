@@ -35,10 +35,10 @@ class AttendanceController extends Controller
 
         $currentTime = Carbon::now('Asia/Jakarta');
         $checkInStart = Carbon::parse('06:00:00', 'Asia/Jakarta');
-        $checkInEnd = Carbon::parse('10:00:00', 'Asia/Jakarta');
+        $checkInEnd = Carbon::parse('08:30:00', 'Asia/Jakarta');
 
         if ($currentTime->lt($checkInStart) || $currentTime->gt($checkInEnd)) {
-            return ApiResponse::error('Check in hanya dapat dilakukan antara jam 06:00 - 10:00 WIB', null, 400);
+            return ApiResponse::error('Check in hanya dapat dilakukan antara jam 06:00 - 08:30 WIB', null, 400);
         }
 
         $office = OfficeLocation::where('is_active', true)->first();
@@ -115,10 +115,10 @@ class AttendanceController extends Controller
 
         $currentTime = Carbon::now('Asia/Jakarta');
         $checkOutStart = Carbon::parse('15:00:00', 'Asia/Jakarta');
-        $checkOutEnd = Carbon::parse('20:00:00', 'Asia/Jakarta');
+        $checkOutEnd = Carbon::parse('17:00:00', 'Asia/Jakarta');
 
         if ($currentTime->lt($checkOutStart) || $currentTime->gt($checkOutEnd)) {
-            return ApiResponse::error('Check out hanya dapat dilakukan antara jam 15:00 - 20:00 WIB', null, 400);
+            return ApiResponse::error('Check out hanya dapat dilakukan antara jam 15:00 - 17:00 WIB', null, 400);
         }
 
         $office = OfficeLocation::where('is_active', true)->first();

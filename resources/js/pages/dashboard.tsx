@@ -39,6 +39,7 @@ interface ChartData {
 interface RecentAttendance {
     id: number;
     user_name: string;
+    user_avatar: string;
     date: string;
     check_in_time: string;
     check_out_time: string | null;
@@ -49,6 +50,7 @@ interface RecentApproval {
     id: number;
     type: 'field_duty' | 'leave';
     user_name: string;
+    user_avatar: string;
     description: string;
     date: string;
     status: string;
@@ -338,9 +340,11 @@ export default function Dashboard({ statistics, charts, recent_attendances, rece
                                             className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-full bg-[#2e7d32]/10 flex items-center justify-center">
-                                                    <UserCheck className="h-5 w-5 text-[#2e7d32]" />
-                                                </div>
+                                                <img
+                                                    src={attendance.user_avatar}
+                                                    alt={attendance.user_name}
+                                                    className="h-10 w-10 rounded-full object-cover border-2 border-[#2e7d32]"
+                                                />
                                                 <div className="space-y-1">
                                                     <p className="text-sm font-medium">{attendance.user_name}</p>
                                                     <p className="text-xs text-muted-foreground">{attendance.date}</p>
@@ -396,19 +400,11 @@ export default function Dashboard({ statistics, charts, recent_attendances, rece
                                             className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div
-                                                    className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                                                        approval.type === 'field_duty'
-                                                            ? 'bg-[#ffd600]/10'
-                                                            : 'bg-blue-500/10'
-                                                    }`}
-                                                >
-                                                    {approval.type === 'field_duty' ? (
-                                                        <Plane className="h-5 w-5 text-[#ffd600]" />
-                                                    ) : (
-                                                        <FileText className="h-5 w-5 text-blue-500" />
-                                                    )}
-                                                </div>
+                                                <img
+                                                    src={approval.user_avatar}
+                                                    alt={approval.user_name}
+                                                    className="h-10 w-10 rounded-full object-cover border-2 border-[#ffd600]"
+                                                />
                                                 <div className="space-y-1">
                                                     <p className="text-sm font-medium">{approval.user_name}</p>
                                                     <p className="text-xs text-muted-foreground">
