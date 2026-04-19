@@ -1,11 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Calendar, X, Info } from 'lucide-react';
 import { useState } from 'react';
 
-export function DevDatePanel({ testDateInfo }: { testDateInfo?: any }) {
+interface TestDateInfo {
+    test_mode: boolean;
+    date: string;
+}
+
+interface DevDatePanelProps {
+    testDateInfo?: TestDateInfo;
+}
+
+export function DevDatePanel({ testDateInfo }: DevDatePanelProps) {
+    const [selectedDate, setSelectedDate] = useState(testDateInfo?.date || new Date().toISOString().split('T')[0]);
+    const [isOpen, setIsOpen] = useState(false);
+
     // Only show if test_date_info is provided (backend controls visibility)
     if (!testDateInfo) {
         return null;
@@ -13,9 +24,6 @@ export function DevDatePanel({ testDateInfo }: { testDateInfo?: any }) {
 
     const testMode = testDateInfo.test_mode;
     const testDate = testDateInfo.date;
-    
-    const [selectedDate, setSelectedDate] = useState(testDate || new Date().toISOString().split('T')[0]);
-    const [isOpen, setIsOpen] = useState(false);
 
     const handleSetDate = () => {
         window.location.href = `/dev/set-date/${selectedDate}`;

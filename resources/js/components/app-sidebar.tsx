@@ -6,8 +6,16 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle } from 'lucide-react';
 import AppLogo from './app-logo';
-import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
+
+interface TestDateInfo {
+    test_mode: boolean;
+    date: string;
+}
+
+interface PageProps extends Record<string, unknown> {
+    test_date_info?: TestDateInfo;
+}
 
 const navItems: NavItem[] = [
     {
@@ -41,24 +49,30 @@ const navItems: NavItem[] = [
         icon: CalendarDays,
     },
     {
-        title: 'Manajemen User',
-        url: '/users',
-        icon: Users,
-    },
-    {
-        title: 'Jabatan',
-        url: '/positions',
-        icon: Briefcase,
-    },
-    {
-        title: 'Departemen',
-        url: '/departments',
-        icon: Building2,
-    },
-    {
-        title: 'Lokasi Kantor',
-        url: '/office-locations',
-        icon: MapPin,
+        title: 'Master',
+        icon: LayoutGrid,
+        items: [
+            {
+                title: 'Manajemen User',
+                url: '/users',
+                icon: Users,
+            },
+            {
+                title: 'Jabatan',
+                url: '/positions',
+                icon: Briefcase,
+            },
+            {
+                title: 'Departemen',
+                url: '/departments',
+                icon: Building2,
+            },
+            {
+                title: 'Lokasi Kantor',
+                url: '/office-locations',
+                icon: MapPin,
+            },
+        ],
     },
 ];
 
@@ -76,8 +90,8 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { props } = usePage();
-    const testDateInfo = (props as any).test_date_info;
+    const { props } = usePage<PageProps>();
+    const testDateInfo = props.test_date_info;
     const isTestMode = testDateInfo?.test_mode;
     const testDate = testDateInfo?.date;
 
@@ -101,7 +115,7 @@ export function AppSidebar() {
                             <AlertDescription className="text-xs">
                                 <div className="font-semibold text-yellow-800">Test Mode</div>
                                 <div className="text-yellow-700 mt-1">
-                                    {new Date(testDate).toLocaleDateString('id-ID', { 
+                                    {testDate && new Date(testDate).toLocaleDateString('id-ID', { 
                                         weekday: 'short',
                                         day: '2-digit', 
                                         month: 'short',

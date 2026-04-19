@@ -7,9 +7,23 @@ import { Toaster } from '@/components/ui/sonner';
 import { type BreadcrumbItem } from '@/types';
 import { usePage } from '@inertiajs/react';
 
-export default function AppSidebarLayout({ children, breadcrumbs = [] }: { children: React.ReactNode; breadcrumbs?: BreadcrumbItem[] }) {
-    const { props } = usePage();
-    const testDateInfo = (props as any).test_date_info;
+interface TestDateInfo {
+    test_mode: boolean;
+    date: string;
+}
+
+interface PageProps {
+    test_date_info?: TestDateInfo;
+}
+
+interface AppSidebarLayoutProps {
+    children: React.ReactNode;
+    breadcrumbs?: BreadcrumbItem[];
+}
+
+export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppSidebarLayoutProps) {
+    const { props } = usePage<PageProps>();
+    const testDateInfo = props.test_date_info;
 
     return (
         <AppShell variant="sidebar">
