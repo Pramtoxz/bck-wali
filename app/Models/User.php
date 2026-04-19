@@ -51,4 +51,28 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the attendances for the user.
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * Get the field duties for the user.
+     */
+    public function fieldDuties()
+    {
+        return $this->hasMany(FieldDuty::class);
+    }
+
+    /**
+     * Get the leaves for the user.
+     */
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class);
+    }
 }
