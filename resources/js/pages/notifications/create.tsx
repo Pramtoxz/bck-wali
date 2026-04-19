@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, AlertCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { useState } from 'react';
 
@@ -33,7 +34,12 @@ export default function NotificationsCreate({ users }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/notifications');
+        post('/notifications', {
+            preserveScroll: true,
+            onError: (errors) => {
+                console.error('Validation errors:', errors);
+            },
+        });
     };
 
     const handleUserToggle = (userId: number) => {
@@ -69,6 +75,15 @@ export default function NotificationsCreate({ users }: Props) {
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {Object.keys(errors).length > 0 && !errors.title && !errors.body && !errors.type && !errors.send_to && !errors.user_ids && (
+                                <Alert className="bg-red-50 border-red-300">
+                                    <AlertCircle className="h-4 w-4 text-red-600" />
+                                    <AlertDescription className="text-red-800">
+                                        Terjadi kesalahan saat mengirim notifikasi. Silakan coba lagi.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
                             <div className="space-y-2">
                                 <Label htmlFor="title">Judul Notifikasi</Label>
                                 <Input

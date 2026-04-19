@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class NotificationManagementController extends Controller
 {
@@ -71,50 +72,76 @@ class NotificationManagementController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'body' => 'required|string',
-            'type' => 'required|in:general,attendance,leave,field_duty,announcement',
-            'send_to' => 'required|in:all,specific',
-            'user_ids' => 'required_if:send_to,specific|array',
-            'user_ids.*' => 'exists:users,id',
-        ]);
-
-        $users = $validated['send_to'] === 'all'
-            ? User::role('user')->whereNotNull('fcm_token')->get()
-            : User::whereIn('id', $validated['user_ids'])->whereNotNull('fcm_token')->get();
-
-        $successCount = 0;
-        $failCount = 0;
-
-        foreach ($users as $user) {
-            Notification::create([
-                'user_id' => $user->id,
-                'title' => $validated['title'],
-                'body' => $validated['body'],
-                'type' => $validated['type'],
-                'is_broadcast' => $validated['send_to'] === 'all',
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'body' => 'required|string',
+                'type' => 'required|in:general,attendance,leave,field_duty,announcement',
+                'send_to' => 'required|in:all,specific',
+                'user_ids' => 'required_if:send_to,specific|array',
+                'user_ids.*' => 'exists:users,id',
             ]);
 
-            $result = $this->firebaseService->sendToDevice(
-                $user->fcm_token,
-                $validated['title'],
-                $validated['body'],
-                [
-                    'type' => $validated['type'],
-                    'timestamp' => now()->toIso8601String()
-                ]
-            );
+            $users = $validated['send_to'] === 'all'
+                ? User::role('user')->get()
+                : User::whereIn('id', $validated['user_ids'])->get();
 
-            if ($result['success']) {
-                $successCount++;
-            } else {
-                $failCount++;
+            if ($users->isEmpty()) {
+                return redirect()->back()
+                    ->withErrors(['user_ids' => 'Tidak ada user yang dipilih atau user tidak memiliki role user'])
+                    ->withInput();
             }
-        }
 
-        return redirect()->route('notifications.index')
-            ->with('success', "Notifikasi berhasil dikirim ke {$successCount} user. Gagal: {$failCount}");
+            $successCount = 0;
+            $failCount = 0;
+
+            foreach ($users as $user) {
+                try {
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'title' => $validated['title'],
+                        'body' => $validated['body'],
+                        'type' => $validated['type'],
+                        'is_broadcast' => $validated['send_to'] === 'all',
+                    ]);
+
+                    if ($user->fcm_token) {
+                        $result = $this->firebaseService->sendToDevice(
+                            $user->fcm_token,
+                            $validated['title'],
+                            $validated['body'],
+                            [
+                                'type' => $validated['type'],
+                                'timestamp' => now()->toIso8601String()
+                            ]
+                        );
+
+                        if ($result['success']) {
+                            $successCount++;
+                        } else {
+                            $failCount++;
+                        }
+                    } else {
+                        $successCount++;
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error creating notification for user ' . $user->id . ': ' . $e->getMessage());
+                    $failCount++;
+                }
+            }
+
+            return redirect()->route('notifications.index')
+                ->with('success', "Notifikasi berhasil dikirim ke {$successCount} user. Gagal: {$failCount}");
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            Log::error('Error in notification store: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])
+                ->withInput();
+        }
     }
 
     public function destroy(Notification $notification)
