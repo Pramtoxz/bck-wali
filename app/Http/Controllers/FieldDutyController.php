@@ -71,6 +71,8 @@ class FieldDutyController extends Controller
             'status' => $validated['status'],
         ]);
 
+        \App\Helpers\NotificationHelper::sendFieldDutyStatusNotification($fieldDuty, $validated['status']);
+
         return redirect()->route('field-duties.index')
             ->with('success', 'Status dinas berhasil diperbarui');
     }

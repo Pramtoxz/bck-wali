@@ -29,4 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('attendance/recap', [AttendanceRecapController::class, 'getMonthlyRecap']);
     Route::get('attendance/detail/{date}', [AttendanceRecapController::class, 'getAttendanceDetail']);
     Route::get('attendance/statistics', [AttendanceRecapController::class, 'getStatistics']);
+    
+    Route::post('notifications/update-token', [\App\Http\Controllers\Api\NotificationController::class, 'updateToken']);
+    Route::post('notifications/test', [\App\Http\Controllers\Api\NotificationController::class, 'sendTest']);
 });

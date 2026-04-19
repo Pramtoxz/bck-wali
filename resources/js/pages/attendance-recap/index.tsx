@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Head, router } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Users, TrendingUp, Clock, CheckCircle, XCircle, Briefcase, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, TrendingUp, Clock, CheckCircle, XCircle, Briefcase, FileText, Download, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +67,7 @@ interface Props {
 export default function AttendanceRecapIndex({ users, selectedUser, recapData, filters }: Props) {
     const [selectedUserId, setSelectedUserId] = useState<string>(filters.user_id?.toString() || '');
     const [selectedMonth, setSelectedMonth] = useState(filters.month);
+    const [exportPeriod, setExportPeriod] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
 
     const handleUserChange = (userId: string) => {
         setSelectedUserId(userId);
@@ -77,6 +78,36 @@ export default function AttendanceRecapIndex({ users, selectedUser, recapData, f
         setSelectedMonth(month);
         if (selectedUserId) {
             router.get('/attendance-recap', { user_id: selectedUserId, month }, { preserveState: true });
+        }
+    };
+
+    const handleExport = () => {
+        if (!selectedUserId) {
+            alert('Pilih karyawan terlebih dahulu');
+            return;
+        }
+        window.location.href = `/attendance-recap/export?user_id=${selectedUserId}&month=${selectedMonth}`;
+    };
+
+    const handleExportAll = () => {
+        window.location.href = `/attendance-recap/export-all?month=${selectedMonth}`;
+    };
+
+    const handleExportByPeriod = () => {
+        const today = new Date();
+        const currentDate = today.toISOString().split('T')[0];
+        const currentYear = today.getFullYear();
+
+        switch (exportPeriod) {
+            case 'daily':
+                window.location.href = `/attendance-recap/export-daily?date=${currentDate}`;
+                break;
+            case 'monthly':
+                window.location.href = `/attendance-recap/export-all?month=${selectedMonth}`;
+                break;
+            case 'yearly':
+                window.location.href = `/attendance-recap/export-yearly?year=${currentYear}`;
+                break;
         }
     };
 
@@ -183,9 +214,35 @@ export default function AttendanceRecapIndex({ users, selectedUser, recapData, f
             <Head title="Rekap Absensi" />
 
             <div className="space-y-6 p-6">
-                <div>
-                    <h1 className="text-2xl font-semibold">Rekap Absensi</h1>
-                    <p className="text-sm text-muted-foreground">Lihat rekapitulasi kehadiran karyawan</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold">Rekap Absensi</h1>
+                        <p className="text-sm text-muted-foreground">Lihat rekapitulasi kehadiran karyawan</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                            <Select value={exportPeriod} onValueChange={(value: any) => setExportPeriod(value)}>
+                                <SelectTrigger className="w-[140px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="daily">Harian</SelectItem>
+                                    <SelectItem value="monthly">Bulanan</SelectItem>
+                                    <SelectItem value="yearly">Tahunan</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button variant="outline" onClick={handleExportByPeriod}>
+                                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                Export {exportPeriod === 'daily' ? 'Harian' : exportPeriod === 'monthly' ? 'Bulanan' : 'Tahunan'}
+                            </Button>
+                        </div>
+                        {selectedUserId && (
+                            <Button onClick={handleExport}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Export Per Karyawan
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">

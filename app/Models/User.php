@@ -26,6 +26,7 @@ class User extends Authenticatable
         'department',
         'avatar',
         'password',
+        'fcm_token',
     ];
 
     /**

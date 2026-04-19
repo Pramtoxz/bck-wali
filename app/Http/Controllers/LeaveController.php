@@ -77,6 +77,8 @@ class LeaveController extends Controller
             'status' => $validated['status'],
         ]);
 
+        \App\Helpers\NotificationHelper::sendLeaveStatusNotification($leave, $validated['status']);
+
         return redirect()->route('leaves.index')
             ->with('success', 'Status izin/cuti berhasil diperbarui');
     }

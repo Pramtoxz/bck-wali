@@ -6,9 +6,14 @@ use App\Models\Attendance;
 use App\Models\FieldDuty;
 use App\Models\Leave;
 use App\Models\User;
+use App\Exports\AttendanceRecapExport;
+use App\Exports\AllEmployeesRecapExport;
+use App\Exports\DailyAttendanceExport;
+use App\Exports\YearlyAttendanceExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceRecapController extends Controller
 {
@@ -208,5 +213,54 @@ class AttendanceRecapController extends Controller
             'calendar' => $calendar,
             'details' => $details,
         ];
+    }
+
+    public function export(Request $request)
+    {
+        $month = $request->input('month', Carbon::now()->format('Y-m'));
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return redirect()->back()->with('error', 'Pilih karyawan terlebih dahulu');
+        }
+
+        $user = User::find($userId);
+        $monthName = Carbon::parse($month . '-01')->locale('id')->monthName;
+        $year = Carbon::parse($month . '-01')->year;
+        
+        $filename = 'Rekap_Absensi_' . str_replace(' ', '_', $user->name) . '_' . $monthName . '_' . $year . '.xlsx';
+
+        return Excel::download(new AttendanceRecapExport($userId, $month), $filename);
+    }
+
+    public function exportAll(Request $request)
+    {
+        $month = $request->input('month', Carbon::now()->format('Y-m'));
+        
+        $monthName = Carbon::parse($month . '-01')->locale('id')->monthName;
+        $year = Carbon::parse($month . '-01')->year;
+        
+        $filename = 'Rekap_Absensi_Semua_Pegawai_' . $monthName . '_' . $year . '.xlsx';
+
+        return Excel::download(new AllEmployeesRecapExport($month), $filename);
+    }
+
+    public function exportDaily(Request $request)
+    {
+        $date = $request->input('date', Carbon::now()->format('Y-m-d'));
+        
+        $dateFormatted = Carbon::parse($date)->format('d_M_Y');
+        $filename = 'Absensi_Harian_' . $dateFormatted . '.xlsx';
+
+        return Excel::download(new DailyAttendanceExport($date), $filename);
+    }
+
+    public function exportYearly(Request $request)
+    {
+        $year = $request->input('year', Carbon::now()->year);
+        
+        $filename = 'Rekap_Absensi_Tahunan_' . $year . '.xlsx';
+
+        return Excel::download(new YearlyAttendanceExport($year), $filename);
     }
 }

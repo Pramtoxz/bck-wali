@@ -30,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('leaves/{leave}/status', [\App\Http\Controllers\LeaveController::class, 'updateStatus'])->name('leaves.update-status');
         
         Route::get('attendance-recap', [\App\Http\Controllers\AttendanceRecapController::class, 'index'])->name('attendance-recap.index');
+        Route::get('attendance-recap/export', [\App\Http\Controllers\AttendanceRecapController::class, 'export'])->name('attendance-recap.export');
+        Route::get('attendance-recap/export-all', [\App\Http\Controllers\AttendanceRecapController::class, 'exportAll'])->name('attendance-recap.export-all');
+        Route::get('attendance-recap/export-daily', [\App\Http\Controllers\AttendanceRecapController::class, 'exportDaily'])->name('attendance-recap.export-daily');
+        Route::get('attendance-recap/export-yearly', [\App\Http\Controllers\AttendanceRecapController::class, 'exportYearly'])->name('attendance-recap.export-yearly');
     });
 });
 
