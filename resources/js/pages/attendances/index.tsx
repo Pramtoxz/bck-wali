@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Head, router } from '@inertiajs/react';
-import { Search, Calendar, ChevronLeft, ChevronRight, Users, UserCheck, UserX, Clock, Plane, FileText } from 'lucide-react';
+import { Head, router, Link } from '@inertiajs/react';
+import { Search, Calendar, ChevronLeft, ChevronRight, Users, UserCheck, UserX, Clock, Plane, FileText, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface UserAttendance {
@@ -267,12 +267,13 @@ export default function AttendancesIndex({ users, summary, filters, date_info }:
                                 <TableHead>Jam Kerja</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Keterangan</TableHead>
+                                <TableHead className="text-center">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {users.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                                         Tidak ada data
                                     </TableCell>
                                 </TableRow>
@@ -329,6 +330,17 @@ export default function AttendancesIndex({ users, summary, filters, date_info }:
                                                 <span className="text-sm">{user.description}</span>
                                             ) : (
                                                 <span className="text-muted-foreground">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {user.attendance?.id ? (
+                                                <Link href={`/attendances/${user.attendance.id}`}>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
+                                            ) : (
+                                                <span className="text-muted-foreground text-sm">-</span>
                                             )}
                                         </TableCell>
                                     </TableRow>
