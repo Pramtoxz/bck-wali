@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Head, router } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Users, TrendingUp, Clock, CheckCircle, XCircle, Briefcase, FileText, Download, FileSpreadsheet } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, Clock, CheckCircle, XCircle, Briefcase, FileText, Download, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -87,10 +87,6 @@ export default function AttendanceRecapIndex({ users, selectedUser, recapData, f
             return;
         }
         window.location.href = `/attendance-recap/export?user_id=${selectedUserId}&month=${selectedMonth}`;
-    };
-
-    const handleExportAll = () => {
-        window.location.href = `/attendance-recap/export-all?month=${selectedMonth}`;
     };
 
     const handleExportByPeriod = () => {
@@ -221,7 +217,7 @@ export default function AttendanceRecapIndex({ users, selectedUser, recapData, f
                     </div>
                     <div className="flex gap-2">
                         <div className="flex items-center gap-2">
-                            <Select value={exportPeriod} onValueChange={(value: any) => setExportPeriod(value)}>
+                            <Select value={exportPeriod} onValueChange={(value) => setExportPeriod(value as 'daily' | 'monthly' | 'yearly')}>
                                 <SelectTrigger className="w-[140px]">
                                     <SelectValue />
                                 </SelectTrigger>

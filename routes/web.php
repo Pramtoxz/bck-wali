@@ -34,6 +34,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('attendance-recap/export-all', [\App\Http\Controllers\AttendanceRecapController::class, 'exportAll'])->name('attendance-recap.export-all');
         Route::get('attendance-recap/export-daily', [\App\Http\Controllers\AttendanceRecapController::class, 'exportDaily'])->name('attendance-recap.export-daily');
         Route::get('attendance-recap/export-yearly', [\App\Http\Controllers\AttendanceRecapController::class, 'exportYearly'])->name('attendance-recap.export-yearly');
+        
+        Route::resource('holidays', \App\Http\Controllers\HolidayController::class);
+        Route::patch('holidays/{holiday}/toggle', [\App\Http\Controllers\HolidayController::class, 'toggleActive'])->name('holidays.toggle');
     });
 });
 
