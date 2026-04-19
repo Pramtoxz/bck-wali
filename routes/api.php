@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AttendanceRecapController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FieldDutyController;
+use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\OfficeLocationController;
 use App\Http\Controllers\Api\ProfileController;
@@ -36,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('attendance/recap', [AttendanceRecapController::class, 'getMonthlyRecap']);
     Route::get('attendance/detail/{date}', [AttendanceRecapController::class, 'getAttendanceDetail']);
     Route::get('attendance/statistics', [AttendanceRecapController::class, 'getStatistics']);
+    
+    Route::get('holidays/check', [HolidayController::class, 'checkToday']);
+    Route::get('holidays', [HolidayController::class, 'index']);
     
     Route::post('notifications/update-token', [\App\Http\Controllers\Api\NotificationController::class, 'updateToken']);
     Route::post('notifications/test', [\App\Http\Controllers\Api\NotificationController::class, 'sendTest']);

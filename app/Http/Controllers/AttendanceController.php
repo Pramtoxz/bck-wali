@@ -12,38 +12,111 @@ class AttendanceController extends Controller
     {
         $search = $request->query('search', '');
         $perPage = $request->query('per_page', 10);
-        $startDate = $request->query('start_date', '');
-        $endDate = $request->query('end_date', '');
+        $date = $request->query('date', now()->format('Y-m-d'));
 
-        $query = Attendance::with('user')
-            ->orderBy('date', 'desc')
-            ->orderBy('created_at', 'desc');
+        $users = \App\Models\User::role('user')
+            ->with([
+                'attendances' => function ($query) use ($date) {
+                    $query->whereDate('date', $date);
+                },
+            ])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'ilike', "%{$search}%")
+                        ->orWhere('username', 'ilike', "%{$search}%")
+                        ->orWhere('nip', 'ilike', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->paginate($perPage);
 
-        if ($search) {
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('username', 'ilike', "%{$search}%")
-                    ->orWhere('nip', 'ilike', "%{$search}%");
-            });
-        }
+        $fieldDuties = \App\Models\FieldDuty::with('user')
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->get()
+            ->keyBy('user_id');
 
-        if ($startDate) {
-            $query->where('date', '>=', $startDate);
-        }
+        $leaves = \App\Models\Leave::with('user')
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->get()
+            ->keyBy('user_id');
 
-        if ($endDate) {
-            $query->where('date', '<=', $endDate);
-        }
+        $usersData = $users->through(function ($user) use ($fieldDuties, $leaves) {
+            $attendance = $user->attendances->first();
+            $fieldDuty = $fieldDuties->get($user->id);
+            $leave = $leaves->get($user->id);
 
-        $attendances = $query->paginate($perPage);
+            $status = 'absent';
+            $statusLabel = 'Tidak Hadir';
+            $statusColor = 'secondary';
+            $description = null;
+
+            if ($fieldDuty) {
+                $status = 'field_duty';
+                $statusLabel = 'Dinas Luar';
+                $statusColor = 'warning';
+                $description = $fieldDuty->destination;
+            } elseif ($leave) {
+                $status = 'leave';
+                $statusLabel = ucfirst($leave->type);
+                $statusColor = 'info';
+                $description = $leave->reason;
+            } elseif ($attendance) {
+                if ($attendance->check_in_time && $attendance->check_out_time) {
+                    $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                    $isLate = $checkInTime > '08:00:00';
+                    $status = $isLate ? 'late' : 'present';
+                    $statusLabel = $isLate ? 'Terlambat' : 'Hadir';
+                    $statusColor = $isLate ? 'destructive' : 'success';
+                } elseif ($attendance->check_in_time) {
+                    $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                    $isLate = $checkInTime > '08:00:00';
+                    $status = 'checked_in';
+                    $statusLabel = $isLate ? 'Check In (Terlambat)' : 'Check In';
+                    $statusColor = $isLate ? 'destructive' : 'warning';
+                }
+            }
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'nip' => $user->nip,
+                'position' => $user->position,
+                'department' => $user->department,
+                'avatar' => $user->avatar ?? asset('images/logo-transparan.png'),
+                'attendance' => $attendance ? [
+                    'id' => $attendance->id,
+                    'check_in_time' => $attendance->check_in_time,
+                    'check_out_time' => $attendance->check_out_time,
+                    'working_hours' => $attendance->working_hours,
+                ] : null,
+                'status' => $status,
+                'status_label' => $statusLabel,
+                'status_color' => $statusColor,
+                'description' => $description,
+            ];
+        });
+
+        $summary = [
+            'total' => $users->total(),
+            'present' => $usersData->where('status', 'present')->count(),
+            'late' => $usersData->where('status', 'late')->count(),
+            'checked_in' => $usersData->where('status', 'checked_in')->count(),
+            'field_duty' => $usersData->where('status', 'field_duty')->count(),
+            'leave' => $usersData->where('status', 'leave')->count(),
+            'absent' => $usersData->where('status', 'absent')->count(),
+        ];
 
         return Inertia::render('attendances/index', [
-            'attendances' => $attendances,
+            'users' => $usersData,
+            'summary' => $summary,
             'filters' => [
                 'search' => $search,
                 'per_page' => $perPage,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
+                'date' => $date,
             ],
         ]);
     }

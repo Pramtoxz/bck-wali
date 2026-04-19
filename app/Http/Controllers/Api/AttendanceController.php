@@ -7,6 +7,7 @@ use App\Helpers\ImageCompressor;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\FieldDuty;
+use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\OfficeLocation;
 use Carbon\Carbon;
@@ -24,6 +25,20 @@ class AttendanceController extends Controller
 
         $user = $request->user();
         $today = Carbon::today()->toDateString();
+
+        // Validasi holiday/weekend
+        $holidayCheck = Holiday::isHoliday($today);
+        if ($holidayCheck['is_holiday']) {
+            return ApiResponse::error(
+                'Tidak dapat melakukan absensi pada hari libur: ' . $holidayCheck['holiday_name'],
+                [
+                    'is_holiday' => true,
+                    'holiday_name' => $holidayCheck['holiday_name'],
+                    'holiday_type' => $holidayCheck['type']
+                ],
+                400
+            );
+        }
 
         $existingAttendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -101,6 +116,20 @@ class AttendanceController extends Controller
         $user = $request->user();
         $today = Carbon::today()->toDateString();
 
+        // Validasi holiday/weekend
+        $holidayCheck = Holiday::isHoliday($today);
+        if ($holidayCheck['is_holiday']) {
+            return ApiResponse::error(
+                'Tidak dapat melakukan absensi pada hari libur: ' . $holidayCheck['holiday_name'],
+                [
+                    'is_holiday' => true,
+                    'holiday_name' => $holidayCheck['holiday_name'],
+                    'holiday_type' => $holidayCheck['type']
+                ],
+                400
+            );
+        }
+
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
             ->first();
@@ -176,6 +205,27 @@ class AttendanceController extends Controller
         $user = $request->user();
         $today = Carbon::today();
         $todayString = $today->toDateString();
+
+        // Check holiday/weekend
+        $holidayCheck = Holiday::isHoliday($today);
+        if ($holidayCheck['is_holiday']) {
+            return ApiResponse::success([
+                'id' => null,
+                'date' => $todayString,
+                'check_in_time' => null,
+                'check_out_time' => null,
+                'check_in_photo' => null,
+                'check_out_photo' => null,
+                'working_hours' => null,
+                'status' => 'holiday',
+                'status_message' => $holidayCheck['holiday_name'],
+                'description' => $holidayCheck['description'] ?? null,
+                'is_holiday' => true,
+                'holiday_type' => $holidayCheck['type'],
+                'can_check_in' => false,
+                'can_check_out' => false,
+            ]);
+        }
 
         // Check if user has approved field duty today
         $fieldDuty = FieldDuty::where('user_id', $user->id)
