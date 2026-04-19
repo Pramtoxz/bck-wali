@@ -24,6 +24,11 @@ class AuthController extends Controller
             return ApiResponse::error('Username atau password salah', null, 401);
         }
 
+        // Blokir admin dari login ke API
+        if ($user->hasRole('admin')) {
+            return ApiResponse::error('Admin tidak memiliki akses ke API mobile', null, 403);
+        }
+
         $token = $user->createToken('mobile-app')->plainTextToken;
 
         return ApiResponse::success([
