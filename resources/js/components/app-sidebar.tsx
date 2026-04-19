@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar } from 'lucide-react';
+import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const navItems: NavItem[] = [
@@ -32,6 +32,11 @@ const navItems: NavItem[] = [
         title: 'Izin & Cuti',
         url: '/leaves',
         icon: FileText,
+    },
+    {
+        title: 'Hari Libur',
+        url: '/holidays',
+        icon: CalendarDays,
     },
     {
         title: 'Manajemen User',
