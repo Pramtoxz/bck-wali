@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle, Activity, MousePointerClick, LogIn } from 'lucide-react';
+import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle, Activity, MousePointerClick, LogIn, Bell } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Alert, AlertDescription } from './ui/alert';
 
@@ -40,6 +40,11 @@ const navGroups: NavGroup[] = [
                 title: 'Authentications',
                 url: '/monitoring/authentications',
                 icon: LogIn,
+            },
+            {
+                title: 'Notifikasi',
+                url: '/notifications',
+                icon: Bell,
             },
         ],
     },

@@ -49,6 +49,10 @@ Route::middleware(['auth:sanctum', 'block.admin.api'])->group(function () {
     Route::get('holidays/check', [HolidayController::class, 'checkToday']);
     Route::get('holidays', [HolidayController::class, 'index']);
     
+    Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+    Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
     Route::post('notifications/update-token', [\App\Http\Controllers\Api\NotificationController::class, 'updateToken']);
     Route::post('notifications/test', [\App\Http\Controllers\Api\NotificationController::class, 'sendTest']);
     

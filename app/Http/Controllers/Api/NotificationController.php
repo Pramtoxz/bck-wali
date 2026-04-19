@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 
@@ -16,9 +17,54 @@ class NotificationController extends Controller
         $this->firebaseService = $firebaseService;
     }
 
-    /**
-     * Update FCM token for authenticated user
-     */
+    public function index(Request $request)
+    {
+        $perPage = min($request->query('per_page', 20), 30);
+        $type = $request->query('type');
+
+        $notifications = Notification::where('user_id', $request->user()->id)
+            ->when($type, function ($query) use ($type) {
+                $query->where('type', $type);
+            })
+            ->latest()
+            ->take(30)
+            ->paginate($perPage);
+
+        return ApiResponse::success($notifications);
+    }
+
+    public function unreadCount(Request $request)
+    {
+        $count = Notification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->count();
+
+        return ApiResponse::success(['unread_count' => $count]);
+    }
+
+    public function markAsRead(Request $request, $id)
+    {
+        $notification = Notification::where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $notification->markAsRead();
+
+        return ApiResponse::success($notification, 'Notifikasi ditandai sudah dibaca');
+    }
+
+    public function markAllAsRead(Request $request)
+    {
+        Notification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+        return ApiResponse::success(null, 'Semua notifikasi ditandai sudah dibaca');
+    }
+
     public function updateToken(Request $request)
     {
         $validated = $request->validate([
@@ -32,9 +78,6 @@ class NotificationController extends Controller
         return ApiResponse::success(null, 'FCM token berhasil diperbarui');
     }
 
-    /**
-     * Send test notification
-     */
     public function sendTest(Request $request)
     {
         $user = $request->user();
@@ -60,3 +103,4 @@ class NotificationController extends Controller
         return ApiResponse::error('Gagal mengirim notifikasi', $result, 500);
     }
 }
+

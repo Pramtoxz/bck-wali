@@ -21,6 +21,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('authentications', [\App\Http\Controllers\MonitoringController::class, 'authentications'])->name('authentications');
         });
 
+        Route::get('notifications', [\App\Http\Controllers\NotificationManagementController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/create', [\App\Http\Controllers\NotificationManagementController::class, 'create'])->name('notifications.create');
+        Route::post('notifications', [\App\Http\Controllers\NotificationManagementController::class, 'store'])->name('notifications.store');
+        Route::delete('notifications/{notification}', [\App\Http\Controllers\NotificationManagementController::class, 'destroy'])->name('notifications.destroy');
+
         Route::resource('users', \App\Http\Controllers\UserManagementController::class);
         Route::resource('positions', \App\Http\Controllers\PositionController::class)->except(['show']);
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class)->except(['show']);
