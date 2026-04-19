@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
 });
 
 Route::middleware(['auth:sanctum', 'block.admin.api'])->group(function () {
@@ -20,19 +20,27 @@ Route::middleware(['auth:sanctum', 'block.admin.api'])->group(function () {
     
     Route::prefix('profile')->group(function () {
         Route::put('/', [ProfileController::class, 'update']);
-        Route::post('/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::post('/avatar', [ProfileController::class, 'updateAvatar'])->middleware('throttle:uploads');
         Route::put('/password', [ProfileController::class, 'updatePassword']);
     });
     
-    Route::post('field-duty', [FieldDutyController::class, 'store']);
-    Route::get('field-duty', [FieldDutyController::class, 'index']);
+    // Field duty & leave submissions with rate limiting
+    Route::middleware('throttle:submissions')->group(function () {
+        Route::post('field-duty', [FieldDutyController::class, 'store']);
+        Route::post('leave', [LeaveController::class, 'store']);
+    });
     
-    Route::post('leave', [LeaveController::class, 'store']);
+    Route::get('field-duty', [FieldDutyController::class, 'index']);
     Route::get('leave', [LeaveController::class, 'index']);
 
     Route::get('office/location', [OfficeLocationController::class, 'getActive']);
-    Route::post('attendance/check-in', [AttendanceController::class, 'checkIn']);
-    Route::post('attendance/check-out', [AttendanceController::class, 'checkOut']);
+    
+    // Attendance with rate limiting
+    Route::middleware('throttle:attendance')->group(function () {
+        Route::post('attendance/check-in', [AttendanceController::class, 'checkIn']);
+        Route::post('attendance/check-out', [AttendanceController::class, 'checkOut']);
+    });
+    
     Route::get('attendance/today', [AttendanceController::class, 'today']);
     Route::get('attendance/recap', [AttendanceRecapController::class, 'getMonthlyRecap']);
     Route::get('attendance/detail/{date}', [AttendanceRecapController::class, 'getAttendanceDetail']);
