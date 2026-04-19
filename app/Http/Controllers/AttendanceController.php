@@ -14,6 +14,14 @@ class AttendanceController extends Controller
         $perPage = $request->query('per_page', 10);
         $date = $request->query('date', now()->format('Y-m-d'));
 
+        // Check if date is weekend
+        $dateCarbon = \Carbon\Carbon::parse($date);
+        $isWeekend = $dateCarbon->isWeekend();
+        
+        // Check if date is holiday
+        $holiday = \App\Models\Holiday::whereDate('date', $date)->first();
+        $isHoliday = $holiday !== null;
+
         $users = \App\Models\User::role('user')
             ->with([
                 'attendances' => function ($query) use ($date) {
@@ -44,7 +52,7 @@ class AttendanceController extends Controller
             ->get()
             ->keyBy('user_id');
 
-        $usersData = $users->through(function ($user) use ($fieldDuties, $leaves) {
+        $usersData = $users->through(function ($user) use ($fieldDuties, $leaves, $isWeekend, $isHoliday) {
             $attendance = $user->attendances->first();
             $fieldDuty = $fieldDuties->get($user->id);
             $leave = $leaves->get($user->id);
@@ -54,29 +62,65 @@ class AttendanceController extends Controller
             $statusColor = 'secondary';
             $description = null;
 
-            if ($fieldDuty) {
-                $status = 'field_duty';
-                $statusLabel = 'Dinas Luar';
-                $statusColor = 'warning';
-                $description = $fieldDuty->destination;
-            } elseif ($leave) {
-                $status = 'leave';
-                $statusLabel = ucfirst($leave->type);
-                $statusColor = 'info';
-                $description = $leave->reason;
-            } elseif ($attendance) {
-                if ($attendance->check_in_time && $attendance->check_out_time) {
-                    $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
-                    $isLate = $checkInTime > '08:00:00';
-                    $status = $isLate ? 'late' : 'present';
-                    $statusLabel = $isLate ? 'Terlambat' : 'Hadir';
-                    $statusColor = $isLate ? 'destructive' : 'success';
-                } elseif ($attendance->check_in_time) {
-                    $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
-                    $isLate = $checkInTime > '08:00:00';
-                    $status = 'checked_in';
-                    $statusLabel = $isLate ? 'Check In (Terlambat)' : 'Check In';
-                    $statusColor = $isLate ? 'destructive' : 'warning';
+            // Check for weekend or holiday first
+            if ($isWeekend || $isHoliday) {
+                if ($attendance) {
+                    // If there's attendance on weekend/holiday
+                    if ($attendance->check_in_time && $attendance->check_out_time) {
+                        $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                        $isLate = $checkInTime > '08:00:00';
+                        $status = $isLate ? 'late' : 'present';
+                        $statusLabel = $isLate ? 'Terlambat' : 'Hadir';
+                        $statusColor = $isLate ? 'destructive' : 'success';
+                    } elseif ($attendance->check_in_time) {
+                        $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                        $isLate = $checkInTime > '08:00:00';
+                        $status = 'checked_in';
+                        $statusLabel = $isLate ? 'Check In (Terlambat)' : 'Check In';
+                        $statusColor = $isLate ? 'destructive' : 'warning';
+                    }
+                } elseif ($fieldDuty) {
+                    $status = 'field_duty';
+                    $statusLabel = 'Dinas Luar';
+                    $statusColor = 'warning';
+                    $description = $fieldDuty->destination;
+                } elseif ($leave) {
+                    $status = 'leave';
+                    $statusLabel = ucfirst($leave->type);
+                    $statusColor = 'info';
+                    $description = $leave->reason;
+                } else {
+                    // No attendance on weekend/holiday is normal
+                    $status = $isWeekend ? 'weekend' : 'holiday';
+                    $statusLabel = $isWeekend ? 'Akhir Pekan' : 'Hari Libur';
+                    $statusColor = 'secondary';
+                }
+            } else {
+                // Regular working day logic
+                if ($fieldDuty) {
+                    $status = 'field_duty';
+                    $statusLabel = 'Dinas Luar';
+                    $statusColor = 'warning';
+                    $description = $fieldDuty->destination;
+                } elseif ($leave) {
+                    $status = 'leave';
+                    $statusLabel = ucfirst($leave->type);
+                    $statusColor = 'info';
+                    $description = $leave->reason;
+                } elseif ($attendance) {
+                    if ($attendance->check_in_time && $attendance->check_out_time) {
+                        $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                        $isLate = $checkInTime > '08:00:00';
+                        $status = $isLate ? 'late' : 'present';
+                        $statusLabel = $isLate ? 'Terlambat' : 'Hadir';
+                        $statusColor = $isLate ? 'destructive' : 'success';
+                    } elseif ($attendance->check_in_time) {
+                        $checkInTime = \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s');
+                        $isLate = $checkInTime > '08:00:00';
+                        $status = 'checked_in';
+                        $statusLabel = $isLate ? 'Check In (Terlambat)' : 'Check In';
+                        $statusColor = $isLate ? 'destructive' : 'warning';
+                    }
                 }
             }
 
@@ -108,6 +152,8 @@ class AttendanceController extends Controller
             'field_duty' => $usersData->where('status', 'field_duty')->count(),
             'leave' => $usersData->where('status', 'leave')->count(),
             'absent' => $usersData->where('status', 'absent')->count(),
+            'weekend' => $usersData->where('status', 'weekend')->count(),
+            'holiday' => $usersData->where('status', 'holiday')->count(),
         ];
 
         return Inertia::render('attendances/index', [
@@ -117,6 +163,11 @@ class AttendanceController extends Controller
                 'search' => $search,
                 'per_page' => $perPage,
                 'date' => $date,
+            ],
+            'date_info' => [
+                'is_weekend' => $isWeekend,
+                'is_holiday' => $isHoliday,
+                'holiday_name' => $holiday?->name,
             ],
         ]);
     }

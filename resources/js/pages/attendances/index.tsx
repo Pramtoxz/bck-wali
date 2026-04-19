@@ -50,15 +50,22 @@ interface Props {
         field_duty: number;
         leave: number;
         absent: number;
+        weekend?: number;
+        holiday?: number;
     };
     filters: {
         search: string;
         per_page: number;
         date: string;
     };
+    date_info: {
+        is_weekend: boolean;
+        is_holiday: boolean;
+        holiday_name: string | null;
+    };
 }
 
-export default function AttendancesIndex({ users, summary, filters }: Props) {
+export default function AttendancesIndex({ users, summary, filters, date_info }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [date, setDate] = useState(filters.date || new Date().toISOString().split('T')[0]);
     const perPage = filters.per_page;
@@ -102,6 +109,23 @@ export default function AttendancesIndex({ users, summary, filters }: Props) {
             secondary: 'bg-gray-500 hover:bg-gray-500/90',
         };
 
+        // Special styling for weekend and holiday
+        if (user.status === 'weekend') {
+            return (
+                <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100/90">
+                    {user.status_label}
+                </Badge>
+            );
+        }
+
+        if (user.status === 'holiday') {
+            return (
+                <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100/90">
+                    {user.status_label}
+                </Badge>
+            );
+        }
+
         return (
             <Badge className={variants[user.status_color] || variants.secondary}>
                 {user.status_label}
@@ -117,9 +141,21 @@ export default function AttendancesIndex({ users, summary, filters }: Props) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold">Data Absensi</h1>
-                        <p className="text-sm text-muted-foreground">
-                            {formatDate(date)}
-                        </p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground">
+                                {formatDate(date)}
+                            </p>
+                            {date_info.is_weekend && (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                    Akhir Pekan
+                                </Badge>
+                            )}
+                            {date_info.is_holiday && (
+                                <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                                    Hari Libur: {date_info.holiday_name}
+                                </Badge>
+                            )}
+                        </div>
                     </div>
                 </div>
 
