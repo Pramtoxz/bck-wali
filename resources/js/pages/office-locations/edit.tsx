@@ -24,7 +24,14 @@ interface Props {
 }
 
 export default function OfficeLocationsEdit({ location }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm<{
+        name: string;
+        latitude: number;
+        longitude: number;
+        radius: number | string;
+        is_active: boolean;
+        map_iframe: string;
+    }>({
         name: location.name,
         latitude: location.latitude,
         longitude: location.longitude,
@@ -141,7 +148,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                     id="radius"
                                     type="number"
                                     value={data.radius}
-                                    onChange={(e) => setData('radius', parseInt(e.target.value) || 0)}
+                                    onChange={(e) => setData('radius', e.target.value === '' ? '' : parseInt(e.target.value))}
                                     placeholder="20"
                                     min="1"
                                     max="1000"
