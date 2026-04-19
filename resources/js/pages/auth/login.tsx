@@ -63,7 +63,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             Sistem Absensi
                         </h1>
                         <p className="text-muted-foreground mt-2">
-                            Wali Nagari Padang Panjang
+                            Wali Nagari Barung Barung Balantai Selatan
                         </p>
                     </div>
 
@@ -187,7 +187,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     {/* Footer */}
                     <div className="mt-6 text-center">
                         <p className="text-sm text-muted-foreground">
-                            © 2026 Wali Nagari Padang Panjang
+                            © 2026 Wali Nagari Barung Barung Balantai Selatan
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                             Sistem Informasi Absensi Pegawai

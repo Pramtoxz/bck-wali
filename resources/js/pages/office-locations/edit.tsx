@@ -75,7 +75,7 @@ export default function OfficeLocationsEdit({ location }: Props) {
                                     id="name"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="Kantor Wali Nagari Padang Panjang"
+                                    placeholder="Kantor Wali Nagari Barung Barung Balantai Selatan"
                                     required
                                 />
                                 <InputError message={errors.name} />

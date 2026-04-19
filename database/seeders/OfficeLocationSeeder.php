@@ -10,7 +10,7 @@ class OfficeLocationSeeder extends Seeder
     public function run(): void
     {
         OfficeLocation::create([
-            'name' => 'Kantor Wali Nagari Padang Panjang',
+            'name' => 'Kantor Wali Nagari Barung Barung Balantai Selatan',
             'latitude' => -0.9492,
             'longitude' => 100.3543,
             'radius' => 20,

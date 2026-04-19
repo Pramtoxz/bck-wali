@@ -219,12 +219,12 @@ class AttendanceRecapController extends Controller
             'check_in_location' => [
                 'latitude' => $attendance->check_in_latitude ?? -0.9492,
                 'longitude' => $attendance->check_in_longitude ?? 100.3543,
-                'address' => 'Kantor Wali Nagari Padang Panjang',
+                'address' => 'Kantor Wali Nagari Barung Barung Balantai Selatan',
             ],
             'check_out_location' => [
                 'latitude' => $attendance->check_out_latitude ?? -0.9492,
                 'longitude' => $attendance->check_out_longitude ?? 100.3543,
-                'address' => 'Kantor Wali Nagari Padang Panjang',
+                'address' => 'Kantor Wali Nagari Barung Barung Balantai Selatan',
             ],
             'working_hours' => $attendance->working_hours,
             'is_late' => $isLate,
