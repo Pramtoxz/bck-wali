@@ -21,6 +21,6 @@ class OfficeLocationController extends Controller
             'longitude' => $office->longitude,
             'radius' => $office->radius,
             'name' => $office->name,
-        ], 'Lokasi kantor berhasil dimuat');
+        ], 'Lokasi kantor berhasil Di Temukan');
     }
 }
