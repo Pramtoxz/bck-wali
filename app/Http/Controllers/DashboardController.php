@@ -15,10 +15,16 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $totalUsers = User::role('user')->count();
+        $totalAdmins = User::role('admin')->count();
         
         $pendingFieldDuties = FieldDuty::where('status', 'pending')->count();
         $pendingLeaves = Leave::where('status', 'pending')->count();
         $pendingApprovals = $pendingFieldDuties + $pendingLeaves;
+        
+        $approvedFieldDuties = FieldDuty::where('status', 'approved')->count();
+        $approvedLeaves = Leave::where('status', 'approved')->count();
+        $rejectedFieldDuties = FieldDuty::where('status', 'rejected')->count();
+        $rejectedLeaves = Leave::where('status', 'rejected')->count();
         
         $currentMonth = Carbon::now()->format('Y-m');
         $startDate = Carbon::parse($currentMonth . '-01')->startOfMonth();
@@ -41,6 +47,79 @@ class DashboardController extends Controller
         $attendanceRate = $expectedAttendances > 0 
             ? round(($totalAttendances / $expectedAttendances) * 100, 1) 
             : 0;
+        
+        $presentCount = Attendance::whereYear('date', $startDate->year)
+            ->whereMonth('date', $startDate->month)
+            ->whereRaw("check_in_time::time <= '08:00:00'")
+            ->count();
+        
+        $lateCount = Attendance::whereYear('date', $startDate->year)
+            ->whereMonth('date', $startDate->month)
+            ->whereRaw("check_in_time::time > '08:00:00'")
+            ->count();
+        
+        $attendanceChart = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            if (!$date->isWeekend()) {
+                $dayPresent = Attendance::whereDate('date', $date)
+                    ->whereRaw("check_in_time::time <= '08:00:00'")
+                    ->count();
+                
+                $dayLate = Attendance::whereDate('date', $date)
+                    ->whereRaw("check_in_time::time > '08:00:00'")
+                    ->count();
+                
+                $attendanceChart[] = [
+                    'date' => $date->format('d M'),
+                    'hadir' => $dayPresent,
+                    'terlambat' => $dayLate,
+                ];
+            }
+        }
+        
+        $monthlyChart = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = Carbon::now()->subMonths($i);
+            $monthStart = $monthDate->copy()->startOfMonth();
+            $monthEnd = $monthDate->copy()->endOfMonth();
+            
+            $monthPresent = Attendance::whereBetween('date', [$monthStart, $monthEnd])
+                ->whereRaw("check_in_time::time <= '08:00:00'")
+                ->count();
+            
+            $monthLate = Attendance::whereBetween('date', [$monthStart, $monthEnd])
+                ->whereRaw("check_in_time::time > '08:00:00'")
+                ->count();
+            
+            $monthlyChart[] = [
+                'month' => $monthDate->locale('id')->format('M'),
+                'hadir' => $monthPresent,
+                'terlambat' => $monthLate,
+            ];
+        }
+        
+        $departmentStats = User::role('user')
+            ->selectRaw('department, COUNT(*) as count')
+            ->groupBy('department')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'department' => $item->department ?? 'Tidak Ada',
+                    'count' => $item->count,
+                ];
+            });
+        
+        $positionStats = User::role('user')
+            ->selectRaw('position, COUNT(*) as count')
+            ->groupBy('position')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'position' => $item->position ?? 'Tidak Ada',
+                    'count' => $item->count,
+                ];
+            });
         
         $recentAttendances = Attendance::with('user')
             ->orderBy('created_at', 'desc')
@@ -99,8 +178,23 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', [
             'statistics' => [
                 'total_users' => $totalUsers,
+                'total_admins' => $totalAdmins,
                 'pending_approvals' => $pendingApprovals,
                 'attendance_rate' => $attendanceRate,
+                'present_count' => $presentCount,
+                'late_count' => $lateCount,
+                'pending_field_duties' => $pendingFieldDuties,
+                'pending_leaves' => $pendingLeaves,
+                'approved_field_duties' => $approvedFieldDuties,
+                'approved_leaves' => $approvedLeaves,
+                'rejected_field_duties' => $rejectedFieldDuties,
+                'rejected_leaves' => $rejectedLeaves,
+            ],
+            'charts' => [
+                'attendance_weekly' => $attendanceChart,
+                'attendance_monthly' => $monthlyChart,
+                'department_stats' => $departmentStats,
+                'position_stats' => $positionStats,
             ],
             'recent_attendances' => $recentAttendances,
             'recent_approvals' => $recentApprovals,
