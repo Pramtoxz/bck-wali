@@ -36,7 +36,7 @@ class AuthController extends Controller
                 'nip' => $user->nip,
                 'position' => $user->position,
                 'department' => $user->department,
-                'avatar' => $user->avatar ?? 'https://i.pinimg.com/736x/56/60/be/5660be0989a298dab7f132a522fbed99.jpg',
+                'avatar' => $user->avatar ?? asset('images/logo-transparan.png'),
                 'role' => $user->getRoleNames()->first(),
                 'permissions' => $user->getAllPermissions()->pluck('name'),
             ],
@@ -62,7 +62,7 @@ class AuthController extends Controller
             'nip' => $user->nip,
             'position' => $user->position,
             'department' => $user->department,
-            'avatar' => $user->avatar ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzZUspXcWeUL8UQz6YcSWiW6RCzLJf8JvrTA&s',
+            'avatar' => $user->avatar ?? asset('images/logo-transparan.png'),
             'role' => $user->getRoleNames()->first(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
