@@ -57,7 +57,7 @@ export default function UsersIndex({ users, filters }: Props) {
     }, [search, perPage]);
 
     const handleDelete = (id: number, name: string) => {
-        if (confirm(`Apakah Anda yakin ingin menghapus user ${name}?`)) {
+        if (confirm(`Apakah Anda yakin menghapus user ${name}?`)) {
             router.delete(`/users/${id}`);
         }
     };
