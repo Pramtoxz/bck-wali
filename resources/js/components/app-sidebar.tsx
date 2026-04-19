@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle } from 'lucide-react';
+import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle, Activity, MousePointerClick, LogIn } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Alert, AlertDescription } from './ui/alert';
 
@@ -18,13 +18,28 @@ interface PageProps extends Record<string, unknown> {
 }
 
 const navGroups: NavGroup[] = [
-        {
+    {
         title: 'Monitoring',
         items: [
             {
                 title: 'Dashboard',
                 url: '/dashboard',
                 icon: LayoutGrid,
+            },
+            {
+                title: 'API Visits',
+                url: '/monitoring/visits',
+                icon: MousePointerClick,
+            },
+            {
+                title: 'User Actions',
+                url: '/monitoring/actions',
+                icon: Activity,
+            },
+            {
+                title: 'Authentications',
+                url: '/monitoring/authentications',
+                icon: LogIn,
             },
         ],
     },

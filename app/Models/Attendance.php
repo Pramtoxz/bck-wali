@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Actionable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
+    use Actionable;
+
     protected $fillable = [
         'user_id',
         'date',

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Actionable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FieldDuty extends Model
 {
-    use HasFactory;
+    use HasFactory, Actionable;
 
     protected $fillable = [
         'user_id',

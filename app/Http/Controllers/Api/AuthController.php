@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserAuthentication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Jenssegers\Agent\Agent;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -31,6 +34,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('mobile-app')->plainTextToken;
 
+        // Track login
+        $this->trackAuthentication($request, $user, 'login');
+
         return ApiResponse::success([
             'token' => $token,
             'user' => [
@@ -50,6 +56,9 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        // Track logout
+        $this->trackAuthentication($request, $request->user(), 'logout');
+
         $request->user()->currentAccessToken()->delete();
         
         return ApiResponse::success(null, 'Logout berhasil');
@@ -71,5 +80,38 @@ class AuthController extends Controller
             'role' => $user->getRoleNames()->first(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
+    }
+
+    private function trackAuthentication(Request $request, User $user, string $action): void
+    {
+        try {
+            $agent = new Agent();
+            $agent->setUserAgent($request->userAgent());
+
+            UserAuthentication::create([
+                'user_id' => $user->id,
+                'action' => $action,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'device' => $this->getDevice($agent),
+                'platform' => $agent->platform(),
+                'browser' => $agent->browser(),
+                'authenticated_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Authentication tracking failed: ' . $e->getMessage());
+        }
+    }
+
+    private function getDevice(Agent $agent): string
+    {
+        if ($agent->isDesktop()) {
+            return 'Desktop';
+        } elseif ($agent->isTablet()) {
+            return 'Tablet';
+        } elseif ($agent->isMobile()) {
+            return 'Mobile';
+        }
+        return 'Unknown';
     }
 }

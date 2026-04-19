@@ -14,6 +14,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('attendances/{attendance}', [\App\Http\Controllers\AttendanceController::class, 'show'])->name('attendances.show');
 
     Route::middleware('role:admin')->group(function () {
+        // Monitoring Routes
+        Route::prefix('monitoring')->name('monitoring.')->group(function () {
+            Route::get('visits', [\App\Http\Controllers\MonitoringController::class, 'visits'])->name('visits');
+            Route::get('actions', [\App\Http\Controllers\MonitoringController::class, 'actions'])->name('actions');
+            Route::get('authentications', [\App\Http\Controllers\MonitoringController::class, 'authentications'])->name('authentications');
+        });
+
         Route::resource('users', \App\Http\Controllers\UserManagementController::class);
         Route::resource('positions', \App\Http\Controllers\PositionController::class)->except(['show']);
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class)->except(['show']);
