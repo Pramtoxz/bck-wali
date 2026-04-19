@@ -2,7 +2,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import { type NavGroup, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Clock, LayoutGrid, Users, MapPin, Briefcase, Building2, Plane, FileText, Calendar, CalendarDays, AlertCircle } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -17,41 +17,25 @@ interface PageProps extends Record<string, unknown> {
     test_date_info?: TestDateInfo;
 }
 
-const navItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Absensi',
-        url: '/attendances',
-        icon: Clock,
-    },
-    {
-        title: 'Rekap Absensi',
-        url: '/attendance-recap',
-        icon: Calendar,
-    },
-    {
-        title: 'Dinas Luar',
-        url: '/field-duties',
-        icon: Plane,
-    },
-    {
-        title: 'Izin & Cuti',
-        url: '/leaves',
-        icon: FileText,
-    },
-    {
-        title: 'Hari Libur',
-        url: '/holidays',
-        icon: CalendarDays,
-    },
-    {
-        title: 'Master',
-        icon: LayoutGrid,
+const navGroups: NavGroup[] = [
+        {
+        title: 'Monitoring',
         items: [
+            {
+                title: 'Dashboard',
+                url: '/dashboard',
+                icon: LayoutGrid,
+            },
+        ],
+    },
+    {
+        title: 'Master Data',
+        items: [
+            {
+                title: 'Hari Libur',
+                url: '/holidays',
+                icon: CalendarDays,
+            },
             {
                 title: 'Manajemen User',
                 url: '/users',
@@ -71,6 +55,36 @@ const navItems: NavItem[] = [
                 title: 'Lokasi Kantor',
                 url: '/office-locations',
                 icon: MapPin,
+            },
+        ],
+    },
+    {
+        title: 'Menu Utama',
+        items: [
+            {
+                title: 'Absensi',
+                url: '/attendances',
+                icon: Clock,
+            },
+            {
+                title: 'Rekap Absensi',
+                url: '/attendance-recap',
+                icon: Calendar,
+            },
+        ],
+    },
+    {
+        title: 'Pengajuan',
+        items: [
+            {
+                title: 'Dinas Luar',
+                url: '/field-duties',
+                icon: Plane,
+            },
+            {
+                title: 'Izin & Cuti',
+                url: '/leaves',
+                icon: FileText,
             },
         ],
     },
@@ -135,7 +149,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navItems} />
+                <NavMain groups={navGroups} />
             </SidebarContent>
 
             <SidebarFooter>
