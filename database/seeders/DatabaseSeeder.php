@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             UserSeeder::class,
             OfficeLocationSeeder::class,
-            AttendanceSeeder::class,
-            FieldDutySeeder::class,
-            LeaveSeeder::class,
+            // AttendanceSeeder::class,
+            // FieldDutySeeder::class,
+            // LeaveSeeder::class,
         ]);
     }
 }
