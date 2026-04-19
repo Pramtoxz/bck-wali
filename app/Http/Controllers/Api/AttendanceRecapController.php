@@ -192,7 +192,7 @@ class AttendanceRecapController extends Controller
         $userId = $request->user()->id;
         
         $attendance = Attendance::where('user_id', $userId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
 
         if (!$attendance) {
@@ -202,24 +202,30 @@ class AttendanceRecapController extends Controller
         $carbonDate = Carbon::parse($date);
         $isLate = $attendance->check_in_time && Carbon::parse($attendance->check_in_time)->format('H:i:s') > '08:00:00';
 
+        $placeholderPhoto = 'https://i.pinimg.com/736x/56/60/be/5660be0989a298dab7f132a522fbed99.jpg';
+
         return ApiResponse::success([
             'date' => $date,
             'day_name' => $carbonDate->locale('id')->dayName,
             'status' => $isLate ? 'late' : 'present',
             'check_in_time' => $attendance->check_in_time,
             'check_out_time' => $attendance->check_out_time,
-            'check_in_photo' => $attendance->check_in_photo ? asset('storage/' . $attendance->check_in_photo) : null,
-            'check_out_photo' => $attendance->check_out_photo ? asset('storage/' . $attendance->check_out_photo) : null,
+            'check_in_photo' => $attendance->check_in_photo 
+                ? asset('storage/' . $attendance->check_in_photo) 
+                : $placeholderPhoto,
+            'check_out_photo' => $attendance->check_out_photo 
+                ? asset('storage/' . $attendance->check_out_photo) 
+                : $placeholderPhoto,
             'check_in_location' => [
-                'latitude' => $attendance->check_in_latitude,
-                'longitude' => $attendance->check_in_longitude,
-                'address' => 'Kantor Wali Nagari',
+                'latitude' => $attendance->check_in_latitude ?? -0.9492,
+                'longitude' => $attendance->check_in_longitude ?? 100.3543,
+                'address' => 'Kantor Wali Nagari Padang Panjang',
             ],
-            'check_out_location' => $attendance->check_out_latitude ? [
-                'latitude' => $attendance->check_out_latitude,
-                'longitude' => $attendance->check_out_longitude,
-                'address' => 'Kantor Wali Nagari',
-            ] : null,
+            'check_out_location' => [
+                'latitude' => $attendance->check_out_latitude ?? -0.9492,
+                'longitude' => $attendance->check_out_longitude ?? 100.3543,
+                'address' => 'Kantor Wali Nagari Padang Panjang',
+            ],
             'working_hours' => $attendance->working_hours,
             'is_late' => $isLate,
             'notes' => null,
