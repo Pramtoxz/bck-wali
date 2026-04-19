@@ -57,6 +57,10 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
+            'test_date_info' => app()->environment('local') ? [
+                'test_mode' => \App\Helpers\DateHelper::isTestMode(),
+                'date' => \App\Helpers\DateHelper::isTestMode() ? \App\Helpers\DateHelper::today() : null,
+            ] : null,
         ]);
     }
 }

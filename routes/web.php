@@ -42,3 +42,28 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+// Testing Routes - Only in development
+if (app()->environment('local')) {
+    Route::middleware(['auth'])->prefix('dev')->group(function () {
+        Route::get('set-date/{date}', function ($date) {
+            session(['test_date' => $date]);
+            return redirect()->back()->with('success', "Test date set to: {$date}");
+        })->name('dev.set-date');
+        
+        Route::get('clear-date', function () {
+            session()->forget('test_date');
+            return redirect()->back()->with('success', 'Test date cleared. Using real date now.');
+        })->name('dev.clear-date');
+        
+        Route::get('date-info', function () {
+            $info = \App\Helpers\DateHelper::getTestDateInfo();
+            return response()->json([
+                'test_mode' => \App\Helpers\DateHelper::isTestMode(),
+                'test_date_info' => $info,
+                'real_date' => now()->format('Y-m-d'),
+                'current_date' => \App\Helpers\DateHelper::today(),
+            ]);
+        })->name('dev.date-info');
+    });
+}

@@ -12,7 +12,7 @@ class AttendanceController extends Controller
     {
         $search = $request->query('search', '');
         $perPage = $request->query('per_page', 10);
-        $date = $request->query('date', now()->format('Y-m-d'));
+        $date = $request->query('date', \App\Helpers\DateHelper::today());
 
         // Check if date is weekend
         $dateCarbon = \Carbon\Carbon::parse($date);
