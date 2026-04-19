@@ -43,4 +43,30 @@ Route::middleware(['auth:sanctum', 'block.admin.api'])->group(function () {
     
     Route::post('notifications/update-token', [\App\Http\Controllers\Api\NotificationController::class, 'updateToken']);
     Route::post('notifications/test', [\App\Http\Controllers\Api\NotificationController::class, 'sendTest']);
+    
+    // Dev mode routes for API testing
+    if (config('app.dev_mode', false)) {
+        Route::post('dev/set-date', function (\Illuminate\Http\Request $request) {
+            $validated = $request->validate(['date' => 'required|date_format:Y-m-d']);
+            \App\Helpers\DateHelper::setTestDate($validated['date']);
+            return \App\Helpers\ApiResponse::success([
+                'test_date' => $validated['date'],
+                'message' => 'Test date set successfully'
+            ]);
+        });
+        
+        Route::post('dev/clear-date', function () {
+            \App\Helpers\DateHelper::clearTestDate();
+            return \App\Helpers\ApiResponse::success(['message' => 'Test date cleared']);
+        });
+        
+        Route::get('dev/date-info', function () {
+            return \App\Helpers\ApiResponse::success([
+                'test_mode' => \App\Helpers\DateHelper::isTestMode(),
+                'current_date' => \App\Helpers\DateHelper::today(),
+                'real_date' => now()->format('Y-m-d'),
+                'test_date_info' => \App\Helpers\DateHelper::getTestDateInfo(),
+            ]);
+        });
+    }
 });

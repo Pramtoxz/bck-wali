@@ -47,12 +47,12 @@ require __DIR__.'/auth.php';
 if (config('app.dev_mode', false)) {
     Route::middleware(['auth'])->prefix('dev')->group(function () {
         Route::get('set-date/{date}', function ($date) {
-            session(['test_date' => $date]);
+            \App\Helpers\DateHelper::setTestDate($date);
             return redirect()->back()->with('success', "Test date set to: {$date}");
         })->name('dev.set-date');
         
         Route::get('clear-date', function () {
-            session()->forget('test_date');
+            \App\Helpers\DateHelper::clearTestDate();
             return redirect()->back()->with('success', 'Test date cleared. Using real date now.');
         })->name('dev.clear-date');
         
