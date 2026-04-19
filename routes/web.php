@@ -43,8 +43,8 @@ Route::middleware(['auth'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 
-// Testing Routes - Only in development
-if (app()->environment('local')) {
+// Testing Routes - Controlled by DEV_MODE
+if (config('app.dev_mode', false)) {
     Route::middleware(['auth'])->prefix('dev')->group(function () {
         Route::get('set-date/{date}', function ($date) {
             session(['test_date' => $date]);

@@ -4,21 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, X, Info } from 'lucide-react';
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
 
-interface DevDatePanelProps {
-    testMode?: boolean;
-    testDate?: string;
-}
-
-export function DevDatePanel({ testMode = false, testDate }: DevDatePanelProps) {
-    const [selectedDate, setSelectedDate] = useState(testDate || new Date().toISOString().split('T')[0]);
-    const [isOpen, setIsOpen] = useState(false);
-
-    // Only show in development
-    if (import.meta.env.PROD) {
+export function DevDatePanel({ testDateInfo }: { testDateInfo?: any }) {
+    // Only show if test_date_info is provided (backend controls visibility)
+    if (!testDateInfo) {
         return null;
     }
+
+    const testMode = testDateInfo.test_mode;
+    const testDate = testDateInfo.date;
+    
+    const [selectedDate, setSelectedDate] = useState(testDate || new Date().toISOString().split('T')[0]);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleSetDate = () => {
         window.location.href = `/dev/set-date/${selectedDate}`;

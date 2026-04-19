@@ -18,10 +18,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: { child
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
-            <DevDatePanel 
-                testMode={testDateInfo?.test_mode} 
-                testDate={testDateInfo?.date}
-            />
+            <DevDatePanel testDateInfo={testDateInfo} />
             <Toaster />
         </AppShell>
     );

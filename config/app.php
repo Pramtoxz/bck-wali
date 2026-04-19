@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Development Mode
+    |--------------------------------------------------------------------------
+    |
+    | Enable development features like date testing panel.
+    | Set DEV_MODE=true in .env to enable, false to disable.
+    |
+    */
+
+    'dev_mode' => env('DEV_MODE', false),
+
 ];
